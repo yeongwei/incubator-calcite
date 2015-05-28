@@ -73,6 +73,18 @@ public class LocalService implements Service {
     if (cursorFactory != resultSet.signature.cursorFactory) {
       signature = signature.setCursorFactory(cursorFactory);
     }
+    /*
+    Meta.Frame frame;
+    int updatCount;
+    if (Meta.StatementType.UPDATE_CAPABLE
+        .contains(signature.getStatementType())) {
+      frame = null;
+      updatCount = (int) (long) ((List) list.get(0)).get(0);
+    } else {
+      frame = new Meta.Frame(0, true, list);
+      updatCount = -1;
+    }
+     */
     return new ResultSetResponse(resultSet.connectionId, resultSet.statementId,
         resultSet.ownStatement, signature, resultSet.firstFrame, -1);
   }
