@@ -534,7 +534,7 @@ public class CalciteMetaImpl extends MetaImpl {
           (CalcitePrepare.CalciteSignature<Object>) signature;
       return getConnection().enumerable(handle, calciteSignature);
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException(e.getMessage());
     }
   }
 

@@ -81,12 +81,14 @@ class JdbcResultSet extends Meta.MetaResultSet {
     }
   }
 
+  /** Creates a empty result set with empty frame */
   public static JdbcResultSet empty(String connectionId, int statementId,
       Meta.Signature signature) {
     return new JdbcResultSet(connectionId, statementId, true, signature,
         Meta.Frame.EMPTY);
   }
 
+  /** Create a result set that only has the updateCount */
   public static JdbcResultSet count(String connectionId, int statementId,
       int updateCount) {
     return new JdbcResultSet(connectionId, statementId, true, null, null, updateCount);

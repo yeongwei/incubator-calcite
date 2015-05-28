@@ -58,7 +58,7 @@ public abstract class AvaticaStatement
   final int resultSetType;
   final int resultSetConcurrency;
   final int resultSetHoldability;
-  private int fetchSize;
+  private int fetchSize = 100;
   private int fetchDirection;
   protected long maxRowCount = 0;
 

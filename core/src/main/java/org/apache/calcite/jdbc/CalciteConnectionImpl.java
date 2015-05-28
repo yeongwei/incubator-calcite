@@ -191,7 +191,7 @@ abstract class CalciteConnectionImpl
     try {
       final Meta.Signature signature =
           parseQuery(query, new ContextImpl(this), -1);
-      CalcitePreparedStatement calcitePreparedStatement =
+      final CalcitePreparedStatement calcitePreparedStatement =
           (CalcitePreparedStatement) factory.newPreparedStatement(this, null,
               signature, resultSetType, resultSetConcurrency, resultSetHoldability);
       server.addStatement(this, calcitePreparedStatement.handle);

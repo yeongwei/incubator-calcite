@@ -428,15 +428,16 @@ public abstract class AvaticaConnection implements Connection {
         if (statement.isWrapperFor(AvaticaPreparedStatement.class)) {
           final AvaticaPreparedStatement pstmt = (AvaticaPreparedStatement) statement;
           final Meta.ExecuteResult executeResult =
-              meta.execute(pstmt.handle, pstmt.getParameterValues(), 100);
+              meta.execute(pstmt.handle, pstmt.getParameterValues(),
+                  statement.getFetchSize());
           final MetaResultSet metaResultSet = executeResult.resultSets.get(0);
           frame = metaResultSet.firstFrame;
           statement.updateCount = metaResultSet.updateCount;
           signature2 = executeResult.resultSets.get(0).signature;
         }
       } catch (Exception e) {
-        throw helper.createException(
-            "Error while execute", e);
+        e.printStackTrace();
+        throw helper.createException(e.getMessage(), e);
       }
 
       final TimeZone timeZone = getTimeZone();
@@ -461,7 +462,10 @@ public abstract class AvaticaConnection implements Connection {
     return statement.openResultSet;
   }
 
-  /**
+  /** Evaluates {@link AvaticaStatement} for statementType. If statementType
+   * is update capable and Statement updateCount is still -1 then proceed to
+   * get updateCount value from statment's resultSet. Handles "ROWCOUNT" object
+   * as Number or List
    * @param statement
    * @throws SQLException
    */
@@ -511,6 +515,7 @@ public abstract class AvaticaConnection implements Connection {
           public void assign(Meta.Signature signature, Meta.Frame firstFrame,
               long updateCount) throws SQLException {
             statement.setSignature(signature);
+
             if (updateCount != -1) {
               statement.updateCount = updateCount;
             } else {

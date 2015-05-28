@@ -952,7 +952,11 @@ public interface Service {
       if (null != parameterValues) {
         builder.setHasParameterValues(true);
         for (TypedValue paramValue : parameterValues) {
-          builder.addParameterValues(paramValue.toProto());
+          if (paramValue == null) {
+            builder.addParameterValues(TypedValue.NULL.toProto());
+          } else {
+            builder.addParameterValues(paramValue.toProto());
+          }
         }
       } else {
         builder.setHasParameterValues(false);

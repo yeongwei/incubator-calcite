@@ -1195,9 +1195,7 @@ public interface Meta {
   }
 
   /**
-   * Facilitate the Type of Statement during prepare
-   * Refer to CalcitePrepareImpl#prepare2_
-   */
+   * Facilitate the Type of Statement during statment prepare */
   enum StatementType {
     SELECT, INSERT, UPDATE, DELETE, UPSERT, MERGE, OTHER_DML, IS_DML,
     CREATE, DROP, ALTER, OTHER_DDL, CALL;

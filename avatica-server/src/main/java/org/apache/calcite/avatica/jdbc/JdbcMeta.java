@@ -157,6 +157,8 @@ public class JdbcMeta implements Meta {
   private final Cache<String, Connection> connectionCache;
   private final Cache<Integer, StatementInfo> statementCache;
 
+  private static final int UNLIMITED_COUNT = -2;
+
   /**
    * Convert from JDBC metadata to Avatica columns.
    */
@@ -402,7 +404,8 @@ public class JdbcMeta implements Meta {
       final ResultSet rs =
           connection.getMetaData().getColumns(catalog, schemaPattern.s,
               tableNamePattern.s, columnNamePattern.s);
-      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs);
+      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs, UNLIMITED_COUNT);
+
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -412,7 +415,7 @@ public class JdbcMeta implements Meta {
     try {
       final ResultSet rs =
           connection.getMetaData().getSchemas(catalog, schemaPattern.s);
-      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs);
+      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs, UNLIMITED_COUNT);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -421,7 +424,7 @@ public class JdbcMeta implements Meta {
   public MetaResultSet getCatalogs() {
     try {
       final ResultSet rs = connection.getMetaData().getCatalogs();
-      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs);
+      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs, UNLIMITED_COUNT);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -430,7 +433,7 @@ public class JdbcMeta implements Meta {
   public MetaResultSet getTableTypes() {
     try {
       final ResultSet rs = connection.getMetaData().getTableTypes();
-      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs);
+      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs, UNLIMITED_COUNT);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -442,7 +445,7 @@ public class JdbcMeta implements Meta {
       final ResultSet rs =
           connection.getMetaData().getProcedures(catalog, schemaPattern.s,
               procedureNamePattern.s);
-      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs);
+      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs, UNLIMITED_COUNT);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -454,7 +457,7 @@ public class JdbcMeta implements Meta {
       final ResultSet rs =
           connection.getMetaData().getProcedureColumns(catalog,
               schemaPattern.s, procedureNamePattern.s, columnNamePattern.s);
-      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs);
+      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs, UNLIMITED_COUNT);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -466,7 +469,7 @@ public class JdbcMeta implements Meta {
       final ResultSet rs =
           connection.getMetaData().getColumnPrivileges(catalog, schema,
               table, columnNamePattern.s);
-      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs);
+      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs, UNLIMITED_COUNT);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -478,7 +481,7 @@ public class JdbcMeta implements Meta {
       final ResultSet rs =
           connection.getMetaData().getTablePrivileges(catalog,
               schemaPattern.s, tableNamePattern.s);
-      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs);
+      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs, UNLIMITED_COUNT);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -494,7 +497,7 @@ public class JdbcMeta implements Meta {
       final ResultSet rs =
           connection.getMetaData().getBestRowIdentifier(catalog, schema,
               table, scope, nullable);
-      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs);
+      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs, UNLIMITED_COUNT);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -508,7 +511,7 @@ public class JdbcMeta implements Meta {
     try {
       final ResultSet rs =
           connection.getMetaData().getVersionColumns(catalog, schema, table);
-      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs);
+      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs, UNLIMITED_COUNT);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -522,7 +525,7 @@ public class JdbcMeta implements Meta {
     try {
       final ResultSet rs =
           connection.getMetaData().getPrimaryKeys(catalog, schema, table);
-      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs);
+      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs, UNLIMITED_COUNT);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -547,7 +550,7 @@ public class JdbcMeta implements Meta {
   public MetaResultSet getTypeInfo() {
     try {
       final ResultSet rs = connection.getMetaData().getTypeInfo();
-      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs);
+      return JdbcResultSet.create(DEFAULT_CONN_ID, -1, rs, UNLIMITED_COUNT);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -709,7 +712,7 @@ public class JdbcMeta implements Meta {
     } else if (e instanceof Error) {
       throw (Error) e;
     } else {
-      throw new RuntimeException(e);
+      throw new RuntimeException(e.getMessage());
     }
   }
 

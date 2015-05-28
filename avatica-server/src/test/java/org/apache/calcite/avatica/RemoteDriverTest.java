@@ -462,6 +462,19 @@ public class RemoteDriverTest {
     }
   }
 
+  @Test public void testFetchSize() throws Exception {
+    Connection connection = ljs();
+
+    Statement statement = connection.createStatement();
+    statement.setFetchSize(101);
+    assertEquals(statement.getFetchSize(), 101);
+
+    PreparedStatement preparedStatement =
+        connection.prepareStatement("select * from (values (1, 'a')) as tbl1 (c1, c2)");
+    preparedStatement.setFetchSize(1);
+    assertEquals(preparedStatement.getFetchSize(), 1);
+  }
+
   @Ignore("CALCITE-719: Refactor PreparedStatement to support setMaxRows")
   @Test public void testStatementPrepareExecuteLocalMaxRow() throws Exception {
     ConnectionSpec.getDatabaseLock().lock();
@@ -809,7 +822,6 @@ public class RemoteDriverTest {
     }
   }
 
-  @Ignore
   @Test public void testPrepareBindExecuteFetch() throws Exception {
     ConnectionSpec.getDatabaseLock().lock();
     try {
