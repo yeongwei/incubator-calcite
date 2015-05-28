@@ -408,6 +408,7 @@ public abstract class AvaticaConnection implements Connection {
   protected ResultSet executeQueryInternal(AvaticaStatement statement,
       Meta.Signature signature, Meta.Frame firstFrame) throws SQLException {
     // Close the previous open result set, if there is one.
+
     synchronized (statement) {
       if (statement.openResultSet != null) {
         final AvaticaResultSet rs = statement.openResultSet;
@@ -428,11 +429,36 @@ public abstract class AvaticaConnection implements Connection {
     // opportunity to call cancel.
     try {
       statement.openResultSet.execute();
+      isUpdateCapable(statement);
     } catch (Exception e) {
       throw helper.createException(
           "exception while executing query: " + e.getMessage(), e);
     }
     return statement.openResultSet;
+  }
+
+  /**
+   * Re-evaluate statement if it is UPDATE_CAPABLE
+   * LOCAL returns java.lang.long
+   * REMOTE returns the List
+   * @param statement
+   * @throws SQLException
+   */
+  private void isUpdateCapable(final AvaticaStatement statement)
+      throws SQLException {
+    if (Meta.StatementType.UPDATE_CAPABLE
+        .contains(statement.getSignature().getStatementType())) {
+      statement.openResultSet.next();
+      Object obj = statement.openResultSet.getObject("ROWCOUNT");
+      if (obj instanceof Long) {
+        statement.updateCount = (int) (long) obj;
+      } else if (obj instanceof List) {
+        statement.updateCount = (int) (long) ((List<Object>) obj).get(0);
+      } else {
+        throw helper.createException("Not a valid return result.");
+      }
+      statement.openResultSet = null;
+    }
   }
 
   protected Meta.ExecuteResult prepareAndExecuteInternal(
@@ -459,6 +485,8 @@ public abstract class AvaticaConnection implements Connection {
 
           public void assign(Meta.Signature signature, Meta.Frame firstFrame,
               int updateCount) throws SQLException {
+            statement.setSignature(signature);
+
             if (updateCount != -1) {
               statement.updateCount = updateCount;
             } else {
@@ -471,6 +499,7 @@ public abstract class AvaticaConnection implements Connection {
           public void execute() throws SQLException {
             if (statement.openResultSet != null) {
               statement.openResultSet.execute();
+              isUpdateCapable(statement);
             }
           }
         };
