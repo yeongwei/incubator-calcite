@@ -627,6 +627,15 @@ public class CalcitePrepareImpl implements CalcitePrepare {
     );
   }
 
+  private Meta.StatementType getStatementType(SqlKind kind) {
+    switch (kind) {
+    case INSERT:
+      return Meta.StatementType.INSERT;
+    default:
+      return null;
+    }
+  }
+
   <T> CalciteSignature<T> prepare2_(
       Context context,
       Query<T> query,
@@ -650,6 +659,7 @@ public class CalcitePrepareImpl implements CalcitePrepare {
 
     final RelDataType x;
     final Prepare.PreparedResult preparedResult;
+    Meta.StatementType statementType = null;
     if (query.sql != null) {
       final CalciteConnectionConfig config = context.config();
       SqlParser parser = createParser(query.sql,
@@ -660,6 +670,7 @@ public class CalcitePrepareImpl implements CalcitePrepare {
       SqlNode sqlNode;
       try {
         sqlNode = parser.parseStmt();
+        statementType = getStatementType(sqlNode.getKind());
       } catch (SqlParseException e) {
         throw new RuntimeException(
             "parse failed: " + e.getMessage(), e);
@@ -759,7 +770,8 @@ public class CalcitePrepareImpl implements CalcitePrepare {
             ? ((Prepare.PreparedResultImpl) preparedResult).collations
             : ImmutableList.<RelCollation>of(),
         maxRowCount,
-        bindable);
+        bindable,
+        statementType);
   }
 
   private List<ColumnMetaData> getColumnMetaDataList(

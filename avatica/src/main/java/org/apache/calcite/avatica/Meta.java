@@ -613,6 +613,8 @@ public interface Meta {
     public final transient Map<String, Object> internalParameters;
     public final CursorFactory cursorFactory;
 
+    private Meta.StatementType statementType = null;
+
     /** Creates a Signature. */
     public Signature(List<ColumnMetaData> columns,
         String sql,
@@ -624,6 +626,24 @@ public interface Meta {
       this.parameters = parameters;
       this.internalParameters = internalParameters;
       this.cursorFactory = cursorFactory;
+    }
+
+    public Signature(List<ColumnMetaData> columns,
+        String sql,
+        List<AvaticaParameter> parameters,
+        Map<String, Object> internalParameters,
+        CursorFactory cursorFactory,
+        Meta.StatementType statementType) {
+      this.columns = columns;
+      this.sql = sql;
+      this.parameters = parameters;
+      this.internalParameters = internalParameters;
+      this.cursorFactory = cursorFactory;
+      this.statementType = statementType;
+    }
+
+    public Meta.StatementType getStatementType() {
+      return statementType;
     }
 
     /** Used by Jackson to create a Signature by de-serializing JSON. */
@@ -639,8 +659,13 @@ public interface Meta {
 
     /** Returns a copy of this Signature, substituting given CursorFactory. */
     public Signature setCursorFactory(CursorFactory cursorFactory) {
-      return new Signature(columns, sql, parameters, internalParameters,
-          cursorFactory);
+      if (statementType == null) {
+        return new Signature(columns, sql, parameters, internalParameters,
+            cursorFactory);
+      } else {
+        return new Signature(columns, sql, parameters, internalParameters,
+            cursorFactory, statementType);
+      }
     }
 
     /** Creates a copy of this Signature with null lists and maps converted to
@@ -1177,6 +1202,21 @@ public interface Meta {
     void assign(Signature signature, Frame firstFrame, long updateCount)
         throws SQLException;
     void execute() throws SQLException;
+  }
+
+  /**
+   * Facilitate the Type of Statement during prepare
+   * Refer to CalcitePrepareImpl#prepare2_
+   */
+  enum StatementType {
+    SELECT, INSERT, UPDATE, DELETE, UPSERT, MERGE, OTHER_DML,
+    CREATE, DROP, ALTER, OTHER_DDL, CALL;
+
+    public static final ArrayList<StatementType> UPDATE_CAPABLE =
+        new ArrayList<StatementType>();
+    static {
+      UPDATE_CAPABLE.add(INSERT);
+    }
   }
 }
 

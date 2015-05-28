@@ -67,14 +67,27 @@ public class LocalService implements Service {
       }
     } else {
       //noinspection unchecked
+      list = (List<Object>) (List) list2(resultSet);
       cursorFactory = Meta.CursorFactory.LIST;
     }
     Meta.Signature signature = resultSet.signature;
     if (cursorFactory != resultSet.signature.cursorFactory) {
       signature = signature.setCursorFactory(cursorFactory);
     }
+
+    Meta.Frame frame;
+    int updatCount;
+    if (Meta.StatementType.UPDATE_CAPABLE
+        .contains(signature.getStatementType())) {
+      frame = null;
+      updatCount = (int) (long) ((List) list.get(0)).get(0);
+    } else {
+      frame = new Meta.Frame(0, true, list);
+      updatCount = -1;
+    }
+
     return new ResultSetResponse(resultSet.connectionId, resultSet.statementId,
-        resultSet.ownStatement, signature, resultSet.firstFrame, -1);
+        resultSet.ownStatement, signature, frame, updatCount);
   }
 
   private List<List<Object>> list2(Meta.MetaResultSet resultSet) {
