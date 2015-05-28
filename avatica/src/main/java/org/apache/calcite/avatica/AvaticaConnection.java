@@ -465,6 +465,21 @@ public abstract class AvaticaConnection implements Connection {
               final TimeZone timeZone = getTimeZone();
               statement.openResultSet = factory.newResultSet(statement,
                   signature, timeZone, firstFrame);
+
+              // Is UPDATE_CAPABLE but updateCount not reflected
+              // TODO: Encapsulate into function, private void hasUpdate( ... )
+              // TODO: Implement AvaticaStatement#setSignature instead only
+              // for AvaticaPreparedStatement
+              // Logic below may be moved to execute()
+              if (Meta.StatementType.UPDATE_CAPABLE
+                    .contains(signature.getStatementType())
+                    && statement.updateCount == -1) {
+                statement.openResultSet.execute();
+                AvaticaResultSet resultSet = statement.openResultSet;
+                resultSet.next();
+                statement.updateCount = (int) resultSet.getLong("ROWCOUNT");
+                statement.openResultSet = null; // Do not execute in prepareCallback#execute
+              }
             }
           }
 

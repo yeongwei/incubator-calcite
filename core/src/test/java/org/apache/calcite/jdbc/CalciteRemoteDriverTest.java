@@ -26,6 +26,7 @@ import org.apache.calcite.avatica.server.HttpServer;
 import org.apache.calcite.avatica.server.Main;
 import org.apache.calcite.prepare.CalcitePrepareImpl;
 import org.apache.calcite.test.CalciteAssert;
+import org.apache.calcite.test.JdbcFrontLinqBackTest;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -620,7 +621,8 @@ public class CalciteRemoteDriverTest {
     }
   }
 
-  /** Factory that creates a {@code LocalJsonService}. */
+  /**
+   * Factory that creates a {@code LocalJsonService}. */
   public static class Factory2 implements Service.Factory {
     public Service create(AvaticaConnection connection) {
       try {
@@ -632,6 +634,40 @@ public class CalciteRemoteDriverTest {
         throw new RuntimeException(e);
       }
     }
+  }
+
+  /**
+   * Factory that creates a Service with connection to a modifiable table
+   */
+  public static class LocalServiceModifiableFactory implements Service.Factory {
+    @Override public Service create(AvaticaConnection connection) {
+      try {
+        Connection conn = JdbcFrontLinqBackTest.makeConnection();
+        final CalciteMetaImpl meta =
+            new CalciteMetaImpl(
+                conn.unwrap(CalciteConnectionImpl.class));
+        return new LocalService(meta);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  @Test public void testInsert() throws Exception {
+    final Connection connection = DriverManager.getConnection(
+        "jdbc:avatica:remote:factory="
+            + LocalServiceModifiableFactory.class.getName());
+    assertFalse(connection.isClosed());
+    Statement statement = connection.createStatement();
+    assertFalse(statement.isClosed());
+
+    String sql = "insert into \"foo\".\"bar\" values (1, 1, 'second', 2, 2)";
+    boolean status = statement.execute(sql);
+    assertFalse(status);
+    ResultSet resultSet = statement.getResultSet();
+    assertTrue(resultSet == null);
+    int updateCount = statement.getUpdateCount();
+    assertTrue(updateCount == 1);
   }
 }
 

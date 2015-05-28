@@ -69,7 +69,7 @@ public class Ord<E> implements Map.Entry<Integer, E> {
       }
 
       public Ord<E> next() {
-        return Ord.of(n++, iterator.next());
+        return (Ord<E>) Ord.of(n++, iterator.next());
       }
 
       public void remove() {
@@ -115,7 +115,7 @@ public class Ord<E> implements Map.Entry<Integer, E> {
     }
 
     public Ord<E> get(int index) {
-      return of(index, elements.get(index));
+      return (Ord<E>) of(index, elements.get(index));
     }
 
     public int size() {
