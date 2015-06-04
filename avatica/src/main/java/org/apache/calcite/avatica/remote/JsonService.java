@@ -61,7 +61,7 @@ public abstract class JsonService implements Service {
     }
     return new Meta.Signature(columns, signature.sql,
         signature.parameters, signature.internalParameters,
-        signature.cursorFactory);
+        signature.cursorFactory, signature.statementType);
   }
 
   private static ColumnMetaData finagle(ColumnMetaData column) {

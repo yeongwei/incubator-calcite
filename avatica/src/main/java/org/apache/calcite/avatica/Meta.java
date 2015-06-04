@@ -463,21 +463,9 @@ public interface Meta {
     public final transient Map<String, Object> internalParameters;
     public final CursorFactory cursorFactory;
 
-    private Meta.StatementType statementType = null;
+    public final Meta.StatementType statementType;
 
     /** Creates a Signature. */
-    public Signature(List<ColumnMetaData> columns,
-        String sql,
-        List<AvaticaParameter> parameters,
-        Map<String, Object> internalParameters,
-        CursorFactory cursorFactory) {
-      this.columns = columns;
-      this.sql = sql;
-      this.parameters = parameters;
-      this.internalParameters = internalParameters;
-      this.cursorFactory = cursorFactory;
-    }
-
     public Signature(List<ColumnMetaData> columns,
         String sql,
         List<AvaticaParameter> parameters,
@@ -492,38 +480,32 @@ public interface Meta {
       this.statementType = statementType;
     }
 
-    public Meta.StatementType getStatementType() {
-      return statementType;
-    }
-
     /** Used by Jackson to create a Signature by de-serializing JSON. */
     @JsonCreator
     public static Signature create(
         @JsonProperty("columns") List<ColumnMetaData> columns,
         @JsonProperty("sql") String sql,
         @JsonProperty("parameters") List<AvaticaParameter> parameters,
-        @JsonProperty("cursorFactory") CursorFactory cursorFactory) {
+        @JsonProperty("cursorFactory") CursorFactory cursorFactory,
+        @JsonProperty("statementType") Meta.StatementType statementType) {
       return new Signature(columns, sql, parameters,
-          Collections.<String, Object>emptyMap(), cursorFactory);
+          Collections.<String, Object>emptyMap(), cursorFactory, statementType);
     }
 
     /** Returns a copy of this Signature, substituting given CursorFactory. */
     public Signature setCursorFactory(CursorFactory cursorFactory) {
-      if (statementType == null) {
-        return new Signature(columns, sql, parameters, internalParameters,
-            cursorFactory);
-      } else {
-        return new Signature(columns, sql, parameters, internalParameters,
+      return new Signature(columns, sql, parameters, internalParameters,
             cursorFactory, statementType);
-      }
     }
 
     /** Creates a copy of this Signature with null lists and maps converted to
      * empty. */
     public Signature sanitize() {
-      if (columns == null || parameters == null || internalParameters == null) {
+      if (columns == null || parameters == null || internalParameters == null
+          || statementType == null) {
         return new Signature(sanitize(columns), sql, sanitize(parameters),
-            sanitize(internalParameters), cursorFactory);
+            sanitize(internalParameters), cursorFactory,
+            Meta.StatementType.SELECT);
       }
       return this;
     }
@@ -698,10 +680,13 @@ public interface Meta {
     SELECT, INSERT, UPDATE, DELETE, UPSERT, MERGE, OTHER_DML,
     CREATE, DROP, ALTER, OTHER_DDL, CALL;
 
-    public static final ArrayList<StatementType> UPDATE_CAPABLE =
-        new ArrayList<StatementType>();
-    static {
-      UPDATE_CAPABLE.add(INSERT);
+    public boolean canUpdate() {
+      switch(this) {
+      case INSERT:
+        return true;
+      default:
+        return false;
+      }
     }
   }
 }
