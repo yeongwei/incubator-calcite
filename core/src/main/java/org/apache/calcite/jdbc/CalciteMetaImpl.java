@@ -197,7 +197,7 @@ public class CalciteMetaImpl extends MetaImpl {
           new CalcitePrepare.CalciteSignature<Object>("",
               ImmutableList.<AvaticaParameter>of(), internalParameters, null,
               columns, cursorFactory, ImmutableList.<RelCollation>of(), -1,
-              null) {
+              null, Meta.StatementType.SELECT) {
             @Override public Enumerable<Object> enumerable(
                 DataContext dataContext) {
               return Linq4j.asEnumerable(firstFrame.rows);

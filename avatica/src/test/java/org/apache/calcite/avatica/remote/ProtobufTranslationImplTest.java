@@ -231,7 +231,8 @@ public class ProtobufTranslationImplTest<T> {
     rows.add(new Object[] {"str_value", 50});
 
     // Create the signature and frame using the metadata and values
-    Signature signature = Signature.create(columns, "sql", params, cursorFactory);
+    Signature signature = Signature.create(columns, "sql", params, cursorFactory,
+        Meta.StatementType.SELECT);
     Frame frame = Frame.create(Integer.MAX_VALUE, true, rows);
 
     // And then create a ResultSetResponse

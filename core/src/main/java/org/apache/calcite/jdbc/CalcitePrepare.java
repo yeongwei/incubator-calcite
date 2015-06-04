@@ -297,7 +297,7 @@ public interface CalcitePrepare {
         List<ColumnMetaData> columns, Meta.CursorFactory cursorFactory,
         List<RelCollation> collationList, long maxRowCount,
         Bindable<T> bindable) {
-      super(columns, sql, parameterList, internalParameters, cursorFactory);
+      super(columns, sql, parameterList, internalParameters, cursorFactory, null);
       this.rowType = rowType;
       this.collationList = collationList;
       this.maxRowCount = maxRowCount;

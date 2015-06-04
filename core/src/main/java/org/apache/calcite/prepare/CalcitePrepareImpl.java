@@ -623,16 +623,22 @@ public class CalcitePrepareImpl implements CalcitePrepare {
           public Enumerable<T> bind(DataContext dataContext) {
             return Linq4j.asEnumerable(list);
           }
-        }
+        },
+        Meta.StatementType.SELECT
     );
   }
 
+  /**
+   * Routine to figure out the StatementType and defaults to SELECT
+   * As CASE increases the default may change
+   * @param kind a SqlKind
+   * @return Meta.StatementType*/
   private Meta.StatementType getStatementType(SqlKind kind) {
     switch (kind) {
     case INSERT:
       return Meta.StatementType.INSERT;
     default:
-      return null;
+      return Meta.StatementType.SELECT;
     }
   }
 

@@ -17,6 +17,7 @@
 package org.apache.calcite.avatica.jdbc;
 
 import org.apache.calcite.avatica.AvaticaParameter;
+import org.apache.calcite.avatica.AvaticaPreparedStatement;
 import org.apache.calcite.avatica.AvaticaUtils;
 import org.apache.calcite.avatica.ColumnMetaData;
 import org.apache.calcite.avatica.ConnectionPropertiesImpl;
@@ -206,14 +207,16 @@ public class JdbcMeta implements Meta {
   }
 
   protected static Signature signature(ResultSetMetaData metaData,
-      ParameterMetaData parameterMetaData, String sql) throws  SQLException {
+      ParameterMetaData parameterMetaData, String sql,
+      Meta.StatementType statementType) throws  SQLException {
     return new Signature(columns(metaData), sql, parameters(parameterMetaData),
-        null, CursorFactory.LIST /* LIST because JdbcResultSet#frame */);
+        null, CursorFactory.LIST /* LIST because JdbcResultSet#frame */,
+        statementType);
   }
 
   protected static Signature signature(ResultSetMetaData metaData)
       throws SQLException {
-    return signature(metaData, null, null);
+    return signature(metaData, null, null, null);
   }
 
   /** Callback for {@link #connectionCache} member expiration. */
@@ -715,10 +718,17 @@ public class JdbcMeta implements Meta {
       final Connection conn = getConnection(ch.id);
       final PreparedStatement statement = conn.prepareStatement(sql);
       final int id = statementIdGenerator.getAndIncrement();
+      Meta.StatementType statementType = null;
+      if (statement.isWrapperFor(AvaticaPreparedStatement.class)) {
+        final AvaticaPreparedStatement avaticaPreparedStatement;
+        avaticaPreparedStatement =
+            statement.unwrap(AvaticaPreparedStatement.class);
+        statementType = avaticaPreparedStatement.getStatementType();
+      }
       statementCache.put(id, new StatementInfo(statement));
       StatementHandle h = new StatementHandle(ch.id, id,
           signature(statement.getMetaData(), statement.getParameterMetaData(),
-              sql));
+              sql, statementType));
       if (LOG.isTraceEnabled()) {
         LOG.trace("prepared statement " + h);
       }

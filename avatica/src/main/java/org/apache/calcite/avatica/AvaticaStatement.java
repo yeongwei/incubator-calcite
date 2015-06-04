@@ -65,11 +65,15 @@ public abstract class AvaticaStatement
   private Meta.Signature signature;
 
   protected void setSignature(Meta.Signature signature) {
-    this.signature = Objects.requireNonNull(signature);
+    this.signature = signature;
   }
 
   protected Meta.Signature getSignature() {
     return signature;
+  }
+
+  public Meta.StatementType getStatementType() {
+    return signature.statementType;
   }
 
   /**
