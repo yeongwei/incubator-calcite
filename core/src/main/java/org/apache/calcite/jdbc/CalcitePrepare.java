@@ -270,20 +270,6 @@ public interface CalcitePrepare {
         List<ColumnMetaData> columns,
         Meta.CursorFactory cursorFactory,
         int maxRowCount,
-        Bindable<T> bindable) {
-      super(columns, sql, parameterList, internalParameters, cursorFactory);
-      this.rowType = rowType;
-      this.maxRowCount = maxRowCount;
-      this.bindable = bindable;
-    }
-
-    public CalciteSignature(String sql,
-        List<AvaticaParameter> parameterList,
-        Map<String, Object> internalParameters,
-        RelDataType rowType,
-        List<ColumnMetaData> columns,
-        Meta.CursorFactory cursorFactory,
-        int maxRowCount,
         Bindable<T> bindable,
         Meta.StatementType statementType) {
       super(columns, sql, parameterList, internalParameters, cursorFactory,
