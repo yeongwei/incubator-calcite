@@ -76,10 +76,9 @@ public class LocalService implements Service {
 
     Meta.Frame frame;
     int updatCount;
-    if (Meta.StatementType.UPDATE_CAPABLE
-        .contains(signature.getStatementType())) {
+    if (signature.statementType.canUpdate()) {
       frame = null;
-      updatCount = (int) (long) ((List) list.get(0)).get(0);
+      updatCount = ((Number) ((List) list.get(0)).get(0)).intValue();
     } else {
       frame = new Meta.Frame(0, true, list);
       updatCount = -1;

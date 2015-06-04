@@ -446,14 +446,18 @@ public abstract class AvaticaConnection implements Connection {
    */
   private void isUpdateCapable(final AvaticaStatement statement)
       throws SQLException {
-    if (Meta.StatementType.UPDATE_CAPABLE
-        .contains(statement.getSignature().getStatementType())) {
+    Meta.Signature signature = statement.getSignature();
+    if (signature == null || signature.statementType == null) {
+      return;
+    }
+    if (signature.statementType.canUpdate()) {
       statement.openResultSet.next();
       Object obj = statement.openResultSet.getObject("ROWCOUNT");
-      if (obj instanceof Long) {
-        statement.updateCount = (int) (long) obj;
+      if (obj instanceof Number) {
+        statement.updateCount = ((Number) obj).intValue();
       } else if (obj instanceof List) {
-        statement.updateCount = (int) (long) ((List<Object>) obj).get(0);
+        statement.updateCount =
+            ((Number) ((List<Object>) obj).get(0)).intValue();
       } else {
         throw helper.createException("Not a valid return result.");
       }
