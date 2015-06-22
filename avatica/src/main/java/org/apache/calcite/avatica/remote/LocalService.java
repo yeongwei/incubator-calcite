@@ -71,19 +71,21 @@ public class LocalService implements Service {
         cursorFactory = Meta.CursorFactory.map(cursorFactory.fieldNames);
       }
 
-      if (signature.statementType.canUpdate()) {
-        frame = null;
-        updatCount = ((Number) ((List) list.get(0)).get(0)).intValue();
+      boolean done;
+      if (resultSet.firstFrame == null) {
+        done = false;
       } else {
-        boolean done;
-        if (resultSet.firstFrame == null) {
-          done = false;
-        } else {
-          done = resultSet.firstFrame.done;
-        }
+        done = resultSet.firstFrame.done;
+      }
 
-        frame = new Meta.Frame(0, done, list);
-        updatCount = -1;
+      frame = new Meta.Frame(0, done, list);
+      updatCount = -1;
+
+      if (signature.statementType != null) {
+        if (signature.statementType.canUpdate()) {
+          frame = null;
+          updatCount = ((Number) ((List) list.get(0)).get(0)).intValue();
+        }
       }
     } else {
       //noinspection unchecked
