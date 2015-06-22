@@ -57,7 +57,7 @@ class RemoteMeta extends MetaImpl {
               : fieldMetaData(clazz).columns;
       signature0 = Signature.create(columns,
           "?", Collections.<AvaticaParameter>emptyList(), CursorFactory.ARRAY,
-          signature0.statementType);
+          Meta.StatementType.SELECT);
     }
     return MetaResultSet.create(response.connectionId, response.statementId,
         response.ownStatement, signature0, response.firstFrame);
