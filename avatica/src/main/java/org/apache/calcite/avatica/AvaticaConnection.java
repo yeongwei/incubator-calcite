@@ -447,7 +447,7 @@ public abstract class AvaticaConnection implements Connection {
   private void isUpdateCapable(final AvaticaStatement statement)
       throws SQLException {
     Meta.Signature signature = statement.getSignature();
-    if (signature == null) {
+    if (signature == null || signature.statementType == null) {
       return;
     }
     if (signature.statementType.canUpdate()) {
