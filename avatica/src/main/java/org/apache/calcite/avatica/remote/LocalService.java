@@ -51,8 +51,13 @@ public class LocalService implements Service {
           resultSet.statementId, resultSet.ownStatement, null, null,
           resultSet.updateCount);
     }
+
+    Meta.Signature signature = resultSet.signature;
     Meta.CursorFactory cursorFactory = resultSet.signature.cursorFactory;
+    Meta.Frame frame = null;
+    int updatCount = -1;
     final List<Object> list;
+
     if (resultSet.firstFrame != null) {
       list = list(resultSet.firstFrame.rows);
       switch (cursorFactory.style) {
@@ -65,24 +70,29 @@ public class LocalService implements Service {
       default:
         cursorFactory = Meta.CursorFactory.map(cursorFactory.fieldNames);
       }
+
+      if (signature.statementType.canUpdate()) {
+        frame = null;
+        updatCount = ((Number) ((List) list.get(0)).get(0)).intValue();
+      } else {
+        boolean done;
+        if (resultSet.firstFrame == null) {
+          done = false;
+        } else {
+          done = resultSet.firstFrame.done;
+        }
+
+        frame = new Meta.Frame(0, done, list);
+        updatCount = -1;
+      }
     } else {
       //noinspection unchecked
       list = (List<Object>) (List) list2(resultSet);
       cursorFactory = Meta.CursorFactory.LIST;
     }
-    Meta.Signature signature = resultSet.signature;
+
     if (cursorFactory != resultSet.signature.cursorFactory) {
       signature = signature.setCursorFactory(cursorFactory);
-    }
-
-    Meta.Frame frame;
-    int updatCount;
-    if (signature.statementType.canUpdate()) {
-      frame = null;
-      updatCount = ((Number) ((List) list.get(0)).get(0)).intValue();
-    } else {
-      frame = new Meta.Frame(0, true, list);
-      updatCount = -1;
     }
 
     return new ResultSetResponse(resultSet.connectionId, resultSet.statementId,
