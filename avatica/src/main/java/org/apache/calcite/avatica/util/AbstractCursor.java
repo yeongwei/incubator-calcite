@@ -779,8 +779,13 @@ public abstract class AbstractCursor implements Cursor {
     }
 
     public byte[] getBytes() {
-      final ByteString o = (ByteString) getObject();
-      return o == null ? null : o.getBytes();
+      Object obj = getObject();
+      try {
+        final ByteString o = (ByteString) obj;
+        return o == null ? null : o.getBytes();
+      } catch (Exception ex) {
+        return (byte[]) obj;
+      }
     }
   }
 

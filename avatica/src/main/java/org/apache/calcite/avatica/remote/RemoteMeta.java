@@ -203,6 +203,19 @@ class RemoteMeta extends MetaImpl {
                 offset, fetchMaxRowCount));
     return response.frame;
   }
+
+  @Override public ExecuteResult execute(StatementHandle h,
+      List<TypedValue> parameterValues, long maxRowCount) {
+    final Service.ExecuteResponse response = service.apply(
+        new Service.ExecuteRequest(h, parameterValues, maxRowCount));
+
+    List<MetaResultSet> metaResultSets = new ArrayList<>();
+    for (Service.ResultSetResponse result : response.results) {
+      metaResultSets.add(toResultSet(null, result));
+    }
+
+    return new ExecuteResult(metaResultSets);
+  }
 }
 
 // End RemoteMeta.java

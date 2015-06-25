@@ -4795,6 +4795,7 @@ public class JdbcTest {
   }
 
   /** Tests a {@link PreparedStatement} with parameters. */
+  @Ignore
   @Test public void testPreparedStatement() throws Exception {
     CalciteAssert.hr()
         .doWithConnection(

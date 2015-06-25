@@ -8226,9 +8226,17 @@ package org.apache.calcite.avatica.proto;
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional uint32 statement_id = 1;</code>
+     * <code>optional .StatementHandle statementHandle = 1;</code>
      */
-    int getStatementId();
+    boolean hasStatementHandle();
+    /**
+     * <code>optional .StatementHandle statementHandle = 1;</code>
+     */
+    org.apache.calcite.avatica.proto.Common.StatementHandle getStatementHandle();
+    /**
+     * <code>optional .StatementHandle statementHandle = 1;</code>
+     */
+    org.apache.calcite.avatica.proto.Common.StatementHandleOrBuilder getStatementHandleOrBuilder();
 
     /**
      * <code>repeated .TypedValue parameter_values = 2;</code>
@@ -8255,9 +8263,14 @@ package org.apache.calcite.avatica.proto;
         int index);
 
     /**
-     * <code>optional uint64 offset = 3;</code>
+     * <code>optional uint64 max_row_count = 3;</code>
      */
-    long getOffset();
+    long getMaxRowCount();
+
+    /**
+     * <code>optional bool has_parameter_values = 4;</code>
+     */
+    boolean getHasParameterValues();
   }
   /**
    * Protobuf type {@code ExecuteRequest}
@@ -8275,9 +8288,9 @@ package org.apache.calcite.avatica.proto;
       super(builder);
     }
     private ExecuteRequest() {
-      statementId_ = 0;
       parameterValues_ = java.util.Collections.emptyList();
-      offset_ = 0L;
+      maxRowCount_ = 0L;
+      hasParameterValues_ = false;
     }
 
     @java.lang.Override
@@ -8305,9 +8318,17 @@ package org.apache.calcite.avatica.proto;
               }
               break;
             }
-            case 8: {
+            case 10: {
+              org.apache.calcite.avatica.proto.Common.StatementHandle.Builder subBuilder = null;
+              if (statementHandle_ != null) {
+                subBuilder = statementHandle_.toBuilder();
+              }
+              statementHandle_ = input.readMessage(org.apache.calcite.avatica.proto.Common.StatementHandle.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(statementHandle_);
+                statementHandle_ = subBuilder.buildPartial();
+              }
 
-              statementId_ = input.readUInt32();
               break;
             }
             case 18: {
@@ -8320,7 +8341,12 @@ package org.apache.calcite.avatica.proto;
             }
             case 24: {
 
-              offset_ = input.readUInt64();
+              maxRowCount_ = input.readUInt64();
+              break;
+            }
+            case 32: {
+
+              hasParameterValues_ = input.readBool();
               break;
             }
           }
@@ -8365,13 +8391,25 @@ package org.apache.calcite.avatica.proto;
     }
 
     private int bitField0_;
-    public static final int STATEMENT_ID_FIELD_NUMBER = 1;
-    private int statementId_;
+    public static final int STATEMENTHANDLE_FIELD_NUMBER = 1;
+    private org.apache.calcite.avatica.proto.Common.StatementHandle statementHandle_;
     /**
-     * <code>optional uint32 statement_id = 1;</code>
+     * <code>optional .StatementHandle statementHandle = 1;</code>
      */
-    public int getStatementId() {
-      return statementId_;
+    public boolean hasStatementHandle() {
+      return statementHandle_ != null;
+    }
+    /**
+     * <code>optional .StatementHandle statementHandle = 1;</code>
+     */
+    public org.apache.calcite.avatica.proto.Common.StatementHandle getStatementHandle() {
+      return statementHandle_ == null ? org.apache.calcite.avatica.proto.Common.StatementHandle.getDefaultInstance() : statementHandle_;
+    }
+    /**
+     * <code>optional .StatementHandle statementHandle = 1;</code>
+     */
+    public org.apache.calcite.avatica.proto.Common.StatementHandleOrBuilder getStatementHandleOrBuilder() {
+      return getStatementHandle();
     }
 
     public static final int PARAMETER_VALUES_FIELD_NUMBER = 2;
@@ -8409,13 +8447,22 @@ package org.apache.calcite.avatica.proto;
       return parameterValues_.get(index);
     }
 
-    public static final int OFFSET_FIELD_NUMBER = 3;
-    private long offset_;
+    public static final int MAX_ROW_COUNT_FIELD_NUMBER = 3;
+    private long maxRowCount_;
     /**
-     * <code>optional uint64 offset = 3;</code>
+     * <code>optional uint64 max_row_count = 3;</code>
      */
-    public long getOffset() {
-      return offset_;
+    public long getMaxRowCount() {
+      return maxRowCount_;
+    }
+
+    public static final int HAS_PARAMETER_VALUES_FIELD_NUMBER = 4;
+    private boolean hasParameterValues_;
+    /**
+     * <code>optional bool has_parameter_values = 4;</code>
+     */
+    public boolean getHasParameterValues() {
+      return hasParameterValues_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -8431,14 +8478,17 @@ package org.apache.calcite.avatica.proto;
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
-      if (statementId_ != 0) {
-        output.writeUInt32(1, statementId_);
+      if (statementHandle_ != null) {
+        output.writeMessage(1, getStatementHandle());
       }
       for (int i = 0; i < parameterValues_.size(); i++) {
         output.writeMessage(2, parameterValues_.get(i));
       }
-      if (offset_ != 0L) {
-        output.writeUInt64(3, offset_);
+      if (maxRowCount_ != 0L) {
+        output.writeUInt64(3, maxRowCount_);
+      }
+      if (hasParameterValues_ != false) {
+        output.writeBool(4, hasParameterValues_);
       }
     }
 
@@ -8448,17 +8498,21 @@ package org.apache.calcite.avatica.proto;
       if (size != -1) return size;
 
       size = 0;
-      if (statementId_ != 0) {
+      if (statementHandle_ != null) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(1, statementId_);
+          .computeMessageSize(1, getStatementHandle());
       }
       for (int i = 0; i < parameterValues_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(2, parameterValues_.get(i));
       }
-      if (offset_ != 0L) {
+      if (maxRowCount_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt64Size(3, offset_);
+          .computeUInt64Size(3, maxRowCount_);
+      }
+      if (hasParameterValues_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(4, hasParameterValues_);
       }
       memoizedSerializedSize = size;
       return size;
@@ -8571,15 +8625,21 @@ package org.apache.calcite.avatica.proto;
       }
       public Builder clear() {
         super.clear();
-        statementId_ = 0;
-
+        if (statementHandleBuilder_ == null) {
+          statementHandle_ = null;
+        } else {
+          statementHandle_ = null;
+          statementHandleBuilder_ = null;
+        }
         if (parameterValuesBuilder_ == null) {
           parameterValues_ = java.util.Collections.emptyList();
           bitField0_ = (bitField0_ & ~0x00000002);
         } else {
           parameterValuesBuilder_.clear();
         }
-        offset_ = 0L;
+        maxRowCount_ = 0L;
+
+        hasParameterValues_ = false;
 
         return this;
       }
@@ -8605,7 +8665,11 @@ package org.apache.calcite.avatica.proto;
         org.apache.calcite.avatica.proto.Requests.ExecuteRequest result = new org.apache.calcite.avatica.proto.Requests.ExecuteRequest(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        result.statementId_ = statementId_;
+        if (statementHandleBuilder_ == null) {
+          result.statementHandle_ = statementHandle_;
+        } else {
+          result.statementHandle_ = statementHandleBuilder_.build();
+        }
         if (parameterValuesBuilder_ == null) {
           if (((bitField0_ & 0x00000002) == 0x00000002)) {
             parameterValues_ = java.util.Collections.unmodifiableList(parameterValues_);
@@ -8615,7 +8679,8 @@ package org.apache.calcite.avatica.proto;
         } else {
           result.parameterValues_ = parameterValuesBuilder_.build();
         }
-        result.offset_ = offset_;
+        result.maxRowCount_ = maxRowCount_;
+        result.hasParameterValues_ = hasParameterValues_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -8632,8 +8697,8 @@ package org.apache.calcite.avatica.proto;
 
       public Builder mergeFrom(org.apache.calcite.avatica.proto.Requests.ExecuteRequest other) {
         if (other == org.apache.calcite.avatica.proto.Requests.ExecuteRequest.getDefaultInstance()) return this;
-        if (other.getStatementId() != 0) {
-          setStatementId(other.getStatementId());
+        if (other.hasStatementHandle()) {
+          mergeStatementHandle(other.getStatementHandle());
         }
         if (parameterValuesBuilder_ == null) {
           if (!other.parameterValues_.isEmpty()) {
@@ -8661,8 +8726,11 @@ package org.apache.calcite.avatica.proto;
             }
           }
         }
-        if (other.getOffset() != 0L) {
-          setOffset(other.getOffset());
+        if (other.getMaxRowCount() != 0L) {
+          setMaxRowCount(other.getMaxRowCount());
+        }
+        if (other.getHasParameterValues() != false) {
+          setHasParameterValues(other.getHasParameterValues());
         }
         onChanged();
         return this;
@@ -8691,30 +8759,121 @@ package org.apache.calcite.avatica.proto;
       }
       private int bitField0_;
 
-      private int statementId_ ;
+      private org.apache.calcite.avatica.proto.Common.StatementHandle statementHandle_ = null;
+      private com.google.protobuf.SingleFieldBuilder<
+          org.apache.calcite.avatica.proto.Common.StatementHandle, org.apache.calcite.avatica.proto.Common.StatementHandle.Builder, org.apache.calcite.avatica.proto.Common.StatementHandleOrBuilder> statementHandleBuilder_;
       /**
-       * <code>optional uint32 statement_id = 1;</code>
+       * <code>optional .StatementHandle statementHandle = 1;</code>
        */
-      public int getStatementId() {
-        return statementId_;
+      public boolean hasStatementHandle() {
+        return statementHandleBuilder_ != null || statementHandle_ != null;
       }
       /**
-       * <code>optional uint32 statement_id = 1;</code>
+       * <code>optional .StatementHandle statementHandle = 1;</code>
        */
-      public Builder setStatementId(int value) {
-        
-        statementId_ = value;
-        onChanged();
+      public org.apache.calcite.avatica.proto.Common.StatementHandle getStatementHandle() {
+        if (statementHandleBuilder_ == null) {
+          return statementHandle_ == null ? org.apache.calcite.avatica.proto.Common.StatementHandle.getDefaultInstance() : statementHandle_;
+        } else {
+          return statementHandleBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .StatementHandle statementHandle = 1;</code>
+       */
+      public Builder setStatementHandle(org.apache.calcite.avatica.proto.Common.StatementHandle value) {
+        if (statementHandleBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          statementHandle_ = value;
+          onChanged();
+        } else {
+          statementHandleBuilder_.setMessage(value);
+        }
+
         return this;
       }
       /**
-       * <code>optional uint32 statement_id = 1;</code>
+       * <code>optional .StatementHandle statementHandle = 1;</code>
        */
-      public Builder clearStatementId() {
-        
-        statementId_ = 0;
-        onChanged();
+      public Builder setStatementHandle(
+          org.apache.calcite.avatica.proto.Common.StatementHandle.Builder builderForValue) {
+        if (statementHandleBuilder_ == null) {
+          statementHandle_ = builderForValue.build();
+          onChanged();
+        } else {
+          statementHandleBuilder_.setMessage(builderForValue.build());
+        }
+
         return this;
+      }
+      /**
+       * <code>optional .StatementHandle statementHandle = 1;</code>
+       */
+      public Builder mergeStatementHandle(org.apache.calcite.avatica.proto.Common.StatementHandle value) {
+        if (statementHandleBuilder_ == null) {
+          if (statementHandle_ != null) {
+            statementHandle_ =
+              org.apache.calcite.avatica.proto.Common.StatementHandle.newBuilder(statementHandle_).mergeFrom(value).buildPartial();
+          } else {
+            statementHandle_ = value;
+          }
+          onChanged();
+        } else {
+          statementHandleBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .StatementHandle statementHandle = 1;</code>
+       */
+      public Builder clearStatementHandle() {
+        if (statementHandleBuilder_ == null) {
+          statementHandle_ = null;
+          onChanged();
+        } else {
+          statementHandle_ = null;
+          statementHandleBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .StatementHandle statementHandle = 1;</code>
+       */
+      public org.apache.calcite.avatica.proto.Common.StatementHandle.Builder getStatementHandleBuilder() {
+        
+        onChanged();
+        return getStatementHandleFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .StatementHandle statementHandle = 1;</code>
+       */
+      public org.apache.calcite.avatica.proto.Common.StatementHandleOrBuilder getStatementHandleOrBuilder() {
+        if (statementHandleBuilder_ != null) {
+          return statementHandleBuilder_.getMessageOrBuilder();
+        } else {
+          return statementHandle_ == null ?
+              org.apache.calcite.avatica.proto.Common.StatementHandle.getDefaultInstance() : statementHandle_;
+        }
+      }
+      /**
+       * <code>optional .StatementHandle statementHandle = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          org.apache.calcite.avatica.proto.Common.StatementHandle, org.apache.calcite.avatica.proto.Common.StatementHandle.Builder, org.apache.calcite.avatica.proto.Common.StatementHandleOrBuilder> 
+          getStatementHandleFieldBuilder() {
+        if (statementHandleBuilder_ == null) {
+          statementHandleBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              org.apache.calcite.avatica.proto.Common.StatementHandle, org.apache.calcite.avatica.proto.Common.StatementHandle.Builder, org.apache.calcite.avatica.proto.Common.StatementHandleOrBuilder>(
+                  getStatementHandle(),
+                  getParentForChildren(),
+                  isClean());
+          statementHandle_ = null;
+        }
+        return statementHandleBuilder_;
       }
 
       private java.util.List<org.apache.calcite.avatica.proto.Common.TypedValue> parameterValues_ =
@@ -8957,28 +9116,54 @@ package org.apache.calcite.avatica.proto;
         return parameterValuesBuilder_;
       }
 
-      private long offset_ ;
+      private long maxRowCount_ ;
       /**
-       * <code>optional uint64 offset = 3;</code>
+       * <code>optional uint64 max_row_count = 3;</code>
        */
-      public long getOffset() {
-        return offset_;
+      public long getMaxRowCount() {
+        return maxRowCount_;
       }
       /**
-       * <code>optional uint64 offset = 3;</code>
+       * <code>optional uint64 max_row_count = 3;</code>
        */
-      public Builder setOffset(long value) {
+      public Builder setMaxRowCount(long value) {
         
-        offset_ = value;
+        maxRowCount_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional uint64 offset = 3;</code>
+       * <code>optional uint64 max_row_count = 3;</code>
        */
-      public Builder clearOffset() {
+      public Builder clearMaxRowCount() {
         
-        offset_ = 0L;
+        maxRowCount_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private boolean hasParameterValues_ ;
+      /**
+       * <code>optional bool has_parameter_values = 4;</code>
+       */
+      public boolean getHasParameterValues() {
+        return hasParameterValues_;
+      }
+      /**
+       * <code>optional bool has_parameter_values = 4;</code>
+       */
+      public Builder setHasParameterValues(boolean value) {
+        
+        hasParameterValues_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool has_parameter_values = 4;</code>
+       */
+      public Builder clearHasParameterValues() {
+        
+        hasParameterValues_ = false;
         onChanged();
         return this;
       }
@@ -9121,10 +9306,11 @@ package org.apache.calcite.avatica.proto;
       "equest\022\025\n\rconnection_id\030\001 \001(\t\"Y\n\025Connect" +
       "ionSyncRequest\022\025\n\rconnection_id\030\001 \001(\t\022)\n" +
       "\nconn_props\030\002 \001(\0132\025.ConnectionProperties" +
-      "\"]\n\016ExecuteRequest\022\024\n\014statement_id\030\001 \001(\r" +
-      "\022%\n\020parameter_values\030\002 \003(\0132\013.TypedValue\022" +
-      "\016\n\006offset\030\003 \001(\004B\"\n org.apache.calcite.av" +
-      "atica.protob\006proto3"
+      "\"\227\001\n\016ExecuteRequest\022)\n\017statementHandle\030\001" +
+      " \001(\0132\020.StatementHandle\022%\n\020parameter_valu" +
+      "es\030\002 \003(\0132\013.TypedValue\022\025\n\rmax_row_count\030\003" +
+      " \001(\004\022\034\n\024has_parameter_values\030\004 \001(\010B\"\n or",
+      "g.apache.calcite.avatica.protob\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -9228,7 +9414,7 @@ package org.apache.calcite.avatica.proto;
     internal_static_ExecuteRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_ExecuteRequest_descriptor,
-        new java.lang.String[] { "StatementId", "ParameterValues", "Offset", });
+        new java.lang.String[] { "StatementHandle", "ParameterValues", "MaxRowCount", "HasParameterValues", });
     org.apache.calcite.avatica.proto.Common.getDescriptor();
   }
 

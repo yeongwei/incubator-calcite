@@ -16,6 +16,7 @@
  */
 package org.apache.calcite.avatica;
 
+import org.apache.calcite.avatica.Meta.MetaResultSet;
 import org.apache.calcite.avatica.remote.TypedValue;
 
 import java.sql.Array;
@@ -408,6 +409,8 @@ public abstract class AvaticaConnection implements Connection {
   protected ResultSet executeQueryInternal(AvaticaStatement statement,
       Meta.Signature signature, Meta.Frame firstFrame) throws SQLException {
     // Close the previous open result set, if there is one.
+    Meta.Frame frame = firstFrame;
+    Meta.Signature signature2 = signature;
 
     synchronized (statement) {
       if (statement.openResultSet != null) {
@@ -421,15 +424,36 @@ public abstract class AvaticaConnection implements Connection {
         }
       }
 
+      try {
+        if (statement.isWrapperFor(AvaticaPreparedStatement.class)) {
+          final AvaticaPreparedStatement pstmt = (AvaticaPreparedStatement) statement;
+          final Meta.ExecuteResult executeResult =
+              meta.execute(pstmt.handle, pstmt.getParameterValues(), 100);
+          final MetaResultSet metaResultSet = executeResult.resultSets.get(0);
+          frame = metaResultSet.firstFrame;
+          statement.updateCount = metaResultSet.updateCount;
+          signature2 = executeResult.resultSets.get(0).signature;
+        }
+      } catch (Exception e) {
+        throw helper.createException(
+            "Error while execute", e);
+      }
+
       final TimeZone timeZone = getTimeZone();
-      statement.openResultSet =
-          factory.newResultSet(statement, signature, timeZone, firstFrame);
+      if (frame == null && signature2 == null && statement.updateCount != -1) {
+        statement.openResultSet = null;
+      } else {
+        statement.openResultSet =
+            factory.newResultSet(statement, signature2, timeZone, frame);
+      }
     }
     // Release the monitor before executing, to give another thread the
     // opportunity to call cancel.
     try {
-      statement.openResultSet.execute();
-      isUpdateCapable(statement);
+      if (statement.openResultSet != null) {
+        statement.openResultSet.execute();
+        isUpdateCapable(statement);
+      }
     } catch (Exception e) {
       throw helper.createException(
           "exception while executing query: " + e.getMessage(), e);
@@ -438,9 +462,6 @@ public abstract class AvaticaConnection implements Connection {
   }
 
   /**
-   * Re-evaluate statement if it is UPDATE_CAPABLE
-   * LOCAL returns java.lang.long
-   * REMOTE returns the List
    * @param statement
    * @throws SQLException
    */
@@ -450,7 +471,7 @@ public abstract class AvaticaConnection implements Connection {
     if (signature == null || signature.statementType == null) {
       return;
     }
-    if (signature.statementType.canUpdate()) {
+    if (signature.statementType.canUpdate() && statement.updateCount == -1) {
       statement.openResultSet.next();
       Object obj = statement.openResultSet.getObject("ROWCOUNT");
       if (obj instanceof Number) {

@@ -113,9 +113,10 @@ message ConnectionSyncRequest {
 
 // Request for Meta#execute(Meta.ConnectionHandle, list, long)
 message ExecuteRequest {
-  uint32 statement_id = 1;
+  StatementHandle statementHandle = 1;
   repeated TypedValue parameter_values = 2;
-  uint64 offset = 3;
+  uint64 max_row_count = 3;
+  bool has_parameter_values = 4;
 }
 
 

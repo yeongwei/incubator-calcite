@@ -760,7 +760,7 @@ public class JdbcMeta implements Meta {
       if (info.resultSet == null) {
         // Create a special result set that just carries update count
         resultSets.add(
-            MetaResultSet.count(h.connectionId, h.id,
+            JdbcResultSet.count(h.connectionId, h.id,
                 AvaticaUtils.getLargeUpdateCount(statement)));
       } else {
         resultSets.add(
@@ -787,7 +787,7 @@ public class JdbcMeta implements Meta {
       final StatementInfo statementInfo = Objects.requireNonNull(
           statementCache.getIfPresent(h.id),
           "Statement not found, potentially expired. " + h);
-      if (statementInfo.resultSet == null || parameterValues != null) {
+      if (statementInfo.resultSet == null && parameterValues != null) {
         if (statementInfo.statement instanceof PreparedStatement) {
           final PreparedStatement preparedStatement =
               (PreparedStatement) statementInfo.statement;
@@ -818,6 +818,57 @@ public class JdbcMeta implements Meta {
       return null;
     }
     return typeList.toArray(new String[typeList.size()]);
+  }
+
+  @Override public ExecuteResult execute(StatementHandle h,
+      List<TypedValue> parameterValues, long maxRowCount) {
+    try {
+      final MetaResultSet metaResultSet;
+      final StatementInfo statementInfo = Objects.requireNonNull(
+          statementCache.getIfPresent(h.id),
+          "Statement not found, potentially expired. " + h);
+      final List<MetaResultSet> resultSets = new ArrayList<>();
+      final PreparedStatement preparedStatement =
+          (PreparedStatement) statementInfo.statement;
+
+      if (parameterValues != null) {
+        for (int i = 0; i < parameterValues.size(); i++) {
+          TypedValue o = parameterValues.get(i);
+          preparedStatement.setObject(i + 1, o.toJdbc(calendar));
+        }
+      }
+
+      if (preparedStatement.execute()) {
+        final Meta.Frame frame;
+        final Signature signature2;
+        if (preparedStatement.isWrapperFor(AvaticaPreparedStatement.class)) {
+          signature2 = h.signature;
+        } else {
+          h.signature = signature(preparedStatement.getMetaData(),
+              preparedStatement.getParameterMetaData(), h.signature.sql,
+              Meta.StatementType.SELECT);
+          signature2 = h.signature;
+        }
+
+        statementInfo.resultSet = preparedStatement.getResultSet();
+        if (statementInfo.resultSet == null) {
+          frame = Frame.EMPTY;
+          resultSets.add(JdbcResultSet.empty(h.connectionId, h.id, signature2));
+        } else {
+          resultSets.add(
+              JdbcResultSet.create(h.connectionId, h.id,
+                  statementInfo.resultSet, maxRowCount, signature2));
+        }
+      } else {
+        resultSets.add(
+            JdbcResultSet.count(h.connectionId, h.id,
+                AvaticaUtils.getLargeUpdateCount(preparedStatement)));
+      }
+
+      return new ExecuteResult(resultSets);
+    } catch (SQLException e) {
+      throw propagate(e);
+    }
   }
 
   /** All we know about a statement. */

@@ -47,6 +47,7 @@ public interface Service {
   ResultSetResponse apply(TypeInfoRequest request);
   ResultSetResponse apply(ColumnsRequest request);
   PrepareResponse apply(PrepareRequest request);
+  ExecuteResponse apply(ExecuteRequest request);
   ExecuteResponse apply(PrepareAndExecuteRequest request);
   FetchResponse apply(FetchRequest request);
   CreateStatementResponse apply(CreateStatementRequest request);
@@ -72,6 +73,7 @@ public interface Service {
       @JsonSubTypes.Type(value = TableTypesRequest.class, name = "getTableTypes"),
       @JsonSubTypes.Type(value = TypeInfoRequest.class, name = "getTypeInfo"),
       @JsonSubTypes.Type(value = ColumnsRequest.class, name = "getColumns"),
+      @JsonSubTypes.Type(value = ExecuteRequest.class, name = "execute"),
       @JsonSubTypes.Type(value = PrepareRequest.class, name = "prepare"),
       @JsonSubTypes.Type(value = PrepareAndExecuteRequest.class,
           name = "prepareAndExecute"),
@@ -883,6 +885,118 @@ public interface Service {
         return statementId == other.statementId && maxRowCount == other.maxRowCount;
       }
 
+      return false;
+    }
+  }
+
+  /** Request for
+   * {@link org.apache.calcite.avatica.Meta#execute(Meta.StatementHandle, List<TypedValue> , int)}. */
+  class ExecuteRequest extends Request {
+    public final Meta.StatementHandle statementHandle;
+    public final List<TypedValue> parameterValues;
+    public final long maxRowCount;
+
+    ExecuteRequest() {
+      statementHandle = null;
+      parameterValues = null;
+      maxRowCount = 0;
+    }
+
+    @JsonCreator
+    public ExecuteRequest(
+        @JsonProperty("statementHandle") Meta.StatementHandle statementHandle,
+        @JsonProperty("parameterValues") List<TypedValue> parameterValues,
+        @JsonProperty("maxRowCount") long maxRowCount) {
+      this.statementHandle = statementHandle;
+      this.parameterValues = parameterValues;
+      this.maxRowCount = maxRowCount;
+    }
+
+    @Override ExecuteResponse accept(Service service) {
+      return service.apply(this);
+    }
+
+    @Override ExecuteRequest deserialize(Message genericMsg) {
+      if (!(genericMsg instanceof Requests.ExecuteRequest)) {
+        throw new IllegalArgumentException(
+            "Expected ExecuteRequest, but got " + genericMsg.getClass().getName());
+      }
+
+      final Requests.ExecuteRequest msg = (Requests.ExecuteRequest) genericMsg;
+      final Descriptor desc = msg.getDescriptorForType();
+
+      Meta.StatementHandle statemetnHandle = null;
+      if (ProtobufService.hasField(msg, desc,
+          Requests.ExecuteRequest.STATEMENTHANDLE_FIELD_NUMBER)) {
+        statemetnHandle = Meta.StatementHandle.fromProto(msg.getStatementHandle());
+      }
+
+      List<TypedValue> values = null;
+      if (msg.getHasParameterValues()) {
+        values = new ArrayList<>(msg.getParameterValuesCount());
+        for (Common.TypedValue valueProto : msg.getParameterValuesList()) {
+          values.add(TypedValue.fromProto(valueProto));
+        }
+      }
+
+      return new ExecuteRequest(statemetnHandle, values, msg.getMaxRowCount());
+    }
+
+    @Override Requests.ExecuteRequest serialize() {
+      Requests.ExecuteRequest.Builder builder = Requests.ExecuteRequest.newBuilder();
+
+      if (null != statementHandle) {
+        builder.setStatementHandle(statementHandle.toProto());
+      }
+
+      if (null != parameterValues) {
+        builder.setHasParameterValues(true);
+        for (TypedValue paramValue : parameterValues) {
+          builder.addParameterValues(paramValue.toProto());
+        }
+      } else {
+        builder.setHasParameterValues(false);
+      }
+
+      builder.setMaxRowCount(maxRowCount);
+
+      return builder.build();
+    }
+
+    @Override public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + ((statementHandle == null) ? 0 : statementHandle.hashCode());
+      result = prime * result + ((parameterValues == null) ? 0 : parameterValues.hashCode());
+      result = prime * result + (int) (maxRowCount ^ (maxRowCount >>> 32));
+      return 0;
+    }
+
+    @Override public boolean equals(Object o) {
+      if (o == this) {
+        return true;
+      }
+      if (o instanceof ExecuteRequest) {
+        ExecuteRequest other = (ExecuteRequest) o;
+
+        if (statementHandle == null) {
+          if (other.statementHandle != null) {
+            return false;
+          }
+        } else if (!statementHandle.equals(other.statementHandle)) {
+          return false;
+        }
+
+        if (null == parameterValues) {
+          if (null != other.parameterValues) {
+            return false;
+          }
+        } else if (!parameterValues.equals(other.parameterValues)) {
+          return false;
+        }
+
+        return maxRowCount == other.maxRowCount;
+      }
       return false;
     }
   }

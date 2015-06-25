@@ -26,6 +26,10 @@ package org.apache.calcite.avatica.proto;
   }
   /**
    * Protobuf enum {@code StatementType}
+   *
+   * <pre>
+   * Has to be consistent with Meta.StatementType
+   * </pre>
    */
   public enum StatementType
       implements com.google.protobuf.ProtocolMessageEnum {

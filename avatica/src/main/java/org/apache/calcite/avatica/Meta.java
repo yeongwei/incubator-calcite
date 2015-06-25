@@ -232,6 +232,11 @@ public interface Meta {
   Frame fetch(StatementHandle h, List<TypedValue> parameterValues, long offset,
       int fetchMaxRowCount);
 
+  /**
+   * Executes a PreparedStatement */
+  ExecuteResult execute(StatementHandle h, List<TypedValue> parameterValues,
+      long maxRowCount);
+
   /** Called during the creation of a statement to allocate a new handle.
    *
    * @param ch Connection handle

@@ -27,6 +27,7 @@ import org.apache.calcite.avatica.server.Main;
 import org.apache.calcite.prepare.CalcitePrepareImpl;
 import org.apache.calcite.test.CalciteAssert;
 import org.apache.calcite.test.JdbcFrontLinqBackTest;
+import org.apache.calcite.test.JdbcTest;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -62,6 +63,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -494,6 +496,103 @@ public class CalciteRemoteDriverTest {
       ++count;
     }
     assertTrue(count > 0);
+  }
+
+  public static Connection makeConnection() throws Exception {
+    List<JdbcTest.Employee> employees = new ArrayList<JdbcTest.Employee>();
+    for (int i = 1; i <= 101; i++) {
+      employees.add(new JdbcTest.Employee(i, 0, "first", 0f, null));
+    }
+    Connection conn = JdbcFrontLinqBackTest.makeConnection(employees);
+    return conn;
+  }
+
+  @Test public void testLocalStatementFetch() throws Exception {
+    Connection conn = makeConnection();
+    String sql = "select * from \"foo\".\"bar\"";
+    Statement statement = conn.createStatement();
+    boolean status = statement.execute(sql);
+    assertTrue(status);
+    ResultSet resultSet = statement.getResultSet();
+    int count = 0;
+    while (resultSet.next()) {
+      count += 1;
+    }
+    assertTrue(count == 101);
+  }
+
+  /**
+   * Returns all resultSet at one go
+   * @throws Exception
+   */
+  @Test public void testLocalPreparedStatementFetch() throws Exception {
+    Connection conn = makeConnection();
+    assertFalse(conn.isClosed());
+    String sql = "select * from \"foo\".\"bar\"";
+    PreparedStatement preparedStatement = conn.prepareStatement(sql);
+    assertFalse(conn.isClosed());
+    boolean status = preparedStatement.execute();
+    assertTrue(status);
+    ResultSet resultSet = preparedStatement.getResultSet();
+    assertTrue(resultSet != null);
+    int count = 0;
+    while (resultSet.next()) {
+      assertTrue(resultSet.getObject(1) != null);
+      count += 1;
+    }
+    assertTrue(count == 101);
+  }
+
+  @Test public void testRemoteStatementFetch() throws Exception {
+    final Connection connection = DriverManager.getConnection(
+        "jdbc:avatica:remote:factory=" + LocalServiceMoreFactory.class.getName());
+    String sql = "select * from \"foo\".\"bar\"";
+    Statement statement = connection.createStatement();
+    boolean status = statement.execute(sql);
+    assertTrue(status);
+    ResultSet resultSet = statement.getResultSet();
+    int count = 0;
+    while (resultSet.next()) {
+      count += 1;
+    }
+    assertTrue(count == 101);
+  }
+
+  @Test public void testRemotePreparedStatementFetch() throws Exception {
+    final Connection connection = DriverManager.getConnection(
+        "jdbc:avatica:remote:factory=" + LocalServiceMoreFactory.class.getName());
+    assertFalse(connection.isClosed());
+
+    String sql = "select * from \"foo\".\"bar\"";
+    PreparedStatement preparedStatement = connection.prepareStatement(sql);
+    assertFalse(preparedStatement.isClosed());
+
+    boolean status = preparedStatement.execute();
+    assertTrue(status);
+    ResultSet resultSet = preparedStatement.getResultSet();
+    assertTrue(resultSet != null);
+
+    int count = 0;
+    while (resultSet.next()) {
+      assertTrue(resultSet.getObject(1) != null);
+      count += 1;
+    }
+    assertTrue(count == 101);
+  }
+
+  /**
+   * Create Calcite instance with more data */
+  public static class LocalServiceMoreFactory implements Service.Factory {
+    @Override public Service create(AvaticaConnection connection) {
+      try {
+        Connection conn = makeConnection();
+        final CalciteMetaImpl meta =
+            new CalciteMetaImpl(conn.unwrap(CalciteConnectionImpl.class));
+        return new LocalService(meta);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
   /** A bunch of sample values of various types. */

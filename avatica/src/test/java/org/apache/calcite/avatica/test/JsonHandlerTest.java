@@ -96,6 +96,10 @@ public class JsonHandlerTest {
     @Override public DatabasePropertyResponse apply(DatabasePropertyRequest request) {
       return null;
     }
+
+    @Override public ExecuteResponse apply(ExecuteRequest request) {
+      return null;
+    }
   }
 
 
