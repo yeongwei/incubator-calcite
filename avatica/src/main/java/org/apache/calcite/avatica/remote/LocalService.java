@@ -67,6 +67,9 @@ public class LocalService implements Service {
       case MAP:
       case LIST:
         break;
+      case RECORD:
+        cursorFactory = Meta.CursorFactory.LIST;
+        break;
       default:
         cursorFactory = Meta.CursorFactory.map(cursorFactory.fieldNames);
       }
@@ -193,6 +196,17 @@ public class LocalService implements Service {
             request.offset,
             request.fetchMaxRowCount);
     return new FetchResponse(frame);
+  }
+
+  public ExecuteResponse apply(ExecuteRequest request) {
+    final Meta.ExecuteResult executeResult = meta.execute(request.statementHandle,
+        request.parameterValues, request.maxRowCount);
+
+    final List<ResultSetResponse> results = new ArrayList<>();
+    for (Meta.MetaResultSet metaResultSet : executeResult.resultSets) {
+      results.add(toResponse(metaResultSet));
+    }
+    return new ExecuteResponse(results);
   }
 
   public CreateStatementResponse apply(CreateStatementRequest request) {

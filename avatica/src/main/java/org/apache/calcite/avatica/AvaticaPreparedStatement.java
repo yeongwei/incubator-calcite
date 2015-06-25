@@ -105,6 +105,7 @@ public abstract class AvaticaPreparedStatement
   // implement PreparedStatement
 
   public ResultSet executeQuery() throws SQLException {
+    this.updateCount = -1;
     return getConnection().executeQueryInternal(this, getSignature(), null);
   }
 
@@ -113,6 +114,7 @@ public abstract class AvaticaPreparedStatement
   }
 
   public int executeUpdate() throws SQLException {
+    this.updateCount = -1;
     getConnection().executeQueryInternal(this, getSignature(), null);
     return updateCount;
   }
@@ -193,6 +195,7 @@ public abstract class AvaticaPreparedStatement
   }
 
   public boolean execute() throws SQLException {
+    this.updateCount = -1;
     getConnection().executeQueryInternal(this, getSignature(), null);
     // Result set is null for DML or DDL.
     // Result set is closed if user cancelled the query.

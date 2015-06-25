@@ -38,6 +38,7 @@ public interface Service {
   ResultSetResponse apply(TypeInfoRequest request);
   ResultSetResponse apply(ColumnsRequest request);
   PrepareResponse apply(PrepareRequest request);
+  ExecuteResponse apply(ExecuteRequest request);
   ExecuteResponse apply(PrepareAndExecuteRequest request);
   FetchResponse apply(FetchRequest request);
   CreateStatementResponse apply(CreateStatementRequest request);
@@ -63,6 +64,7 @@ public interface Service {
       @JsonSubTypes.Type(value = TableTypesRequest.class, name = "getTableTypes"),
       @JsonSubTypes.Type(value = TypeInfoRequest.class, name = "getTypeInfo"),
       @JsonSubTypes.Type(value = ColumnsRequest.class, name = "getColumns"),
+      @JsonSubTypes.Type(value = ExecuteRequest.class, name = "execute"),
       @JsonSubTypes.Type(value = PrepareRequest.class, name = "prepare"),
       @JsonSubTypes.Type(value = PrepareAndExecuteRequest.class,
           name = "prepareAndExecute"),
@@ -257,6 +259,28 @@ public interface Service {
       this.connectionId = connectionId;
       this.statementId = statementId;
       this.sql = sql;
+      this.maxRowCount = maxRowCount;
+    }
+
+    @Override ExecuteResponse accept(Service service) {
+      return service.apply(this);
+    }
+  }
+
+  /** Request for
+   * {@link org.apache.calcite.avatica.Meta#execute(Meta.StatementHandle, List<TypedValue> , int)}. */
+  class ExecuteRequest extends Request {
+    public final Meta.StatementHandle statementHandle;
+    public final List<TypedValue> parameterValues;
+    public final int maxRowCount;
+
+    @JsonCreator
+    public ExecuteRequest(
+        @JsonProperty("statementHandle") Meta.StatementHandle statementHandle,
+        @JsonProperty("parameterValues") List<TypedValue> parameterValues,
+        @JsonProperty("maxRowCount") int maxRowCount) {
+      this.statementHandle = statementHandle;
+      this.parameterValues = parameterValues;
       this.maxRowCount = maxRowCount;
     }
 

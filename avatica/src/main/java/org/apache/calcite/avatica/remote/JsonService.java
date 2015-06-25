@@ -226,6 +226,14 @@ public abstract class JsonService implements Service {
     }
   }
 
+  public ExecuteResponse apply(ExecuteRequest request) {
+    try {
+      return finagle(decode(apply(encode(request)), ExecuteResponse.class));
+    } catch (IOException e) {
+      throw handle(e);
+    }
+  }
+
   public CreateStatementResponse apply(CreateStatementRequest request) {
     try {
       return decode(apply(encode(request)), CreateStatementResponse.class);

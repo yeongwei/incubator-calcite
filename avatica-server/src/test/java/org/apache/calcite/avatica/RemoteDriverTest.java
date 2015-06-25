@@ -248,6 +248,28 @@ public class RemoteDriverTest {
     checkStatementExecuteQuery(mjs(), true);
   }
 
+  @Test public void testInsertDrop() throws Exception {
+    final String create = "create table TEST_TABLE2("
+        + "id int not null, "
+        + "msg varchar(3) not null)";
+    final String insert = "insert into TEST_TABLE2 values(1, 'foo')";
+    Connection connection = ljs();
+    Statement statement = connection.createStatement();
+    statement.execute(create);
+
+    Statement stmt = connection.createStatement();
+    int count = stmt.executeUpdate(insert);
+    assertTrue(count == 1);
+    ResultSet resultSet = stmt.getResultSet();
+    assertTrue(resultSet == null);
+
+    PreparedStatement pstmt = connection.prepareStatement(insert);
+    boolean status = pstmt.execute();
+    assertFalse(status);
+    int updateCount = pstmt.getUpdateCount();
+    assertTrue(updateCount == 1);
+  }
+
   private void checkStatementExecuteQuery(Connection connection,
       boolean prepare) throws SQLException {
     final String sql = "select * from (\n"
@@ -292,7 +314,8 @@ public class RemoteDriverTest {
     // PreparedStatement needed an extra fetch, as the execute will
     // trigger the 1st fetch. Where statement execute will execute direct
     // with results back.
-    checkExecuteFetch(ljs(), sql, true, 2);
+    // 1 Fetch since execute did the first "fetch"
+    checkExecuteFetch(ljs(), sql, true, 1);
   }
 
   private void checkExecuteFetch(Connection conn, String sql, boolean isPrepare,

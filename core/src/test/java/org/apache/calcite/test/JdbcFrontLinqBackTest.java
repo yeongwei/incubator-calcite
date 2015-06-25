@@ -272,7 +272,7 @@ public class JdbcFrontLinqBackTest {
    * @return java.sql.Connection
    * @throws Exception
    */
-  protected static Connection makeConnection(
+  public static Connection makeConnection(
         final List<JdbcTest.Employee> initialData) throws Exception {
     Properties info = new Properties();
     Connection connection = DriverManager.getConnection("jdbc:calcite:", info);
