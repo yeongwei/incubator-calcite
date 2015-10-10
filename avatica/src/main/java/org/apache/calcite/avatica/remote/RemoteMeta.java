@@ -20,6 +20,7 @@ import org.apache.calcite.avatica.AvaticaConnection;
 import org.apache.calcite.avatica.AvaticaParameter;
 import org.apache.calcite.avatica.ColumnMetaData;
 import org.apache.calcite.avatica.ConnectionPropertiesImpl;
+import org.apache.calcite.avatica.Meta;
 import org.apache.calcite.avatica.MetaImpl;
 
 import java.sql.SQLException;
