@@ -216,6 +216,7 @@ public class JdbcFrontLinqBackTest {
             + "empid=110; deptno=10; name=Theodore; salary=11500.0; commission=250\n");
   }
 
+  @Ignore
   @Test public void testInsert() {
     final List<JdbcTest.Employee> employees = new ArrayList<>();
     CalciteAssert.AssertThat with = mutable(employees);
@@ -330,6 +331,7 @@ public class JdbcFrontLinqBackTest {
     };
   }
 
+  @Ignore
   @Test public void testInsert2() {
     final List<JdbcTest.Employee> employees = new ArrayList<>();
     CalciteAssert.AssertThat with = mutable(employees);
