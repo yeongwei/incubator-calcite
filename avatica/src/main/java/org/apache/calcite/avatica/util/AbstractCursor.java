@@ -778,13 +778,14 @@ public abstract class AbstractCursor implements Cursor {
       super(getter);
     }
 
+    //FIXME: Protobuf gets byte[]
     public byte[] getBytes() {
       Object obj = getObject();
       try {
         final ByteString o = (ByteString) obj;
         return o == null ? null : o.getBytes();
       } catch (Exception ex) {
-        return (byte[]) obj;
+        return obj == null ? null : (byte[]) obj;
       }
     }
   }
