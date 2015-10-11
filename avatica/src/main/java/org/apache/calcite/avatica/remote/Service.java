@@ -890,7 +890,7 @@ public interface Service {
   }
 
   /** Request for
-   * {@link org.apache.calcite.avatica.Meta#execute(Meta.StatementHandle, List<TypedValue> , int)}. */
+   * {@link org.apache.calcite.avatica.Meta#execute}. */
   class ExecuteRequest extends Request {
     public final Meta.StatementHandle statementHandle;
     public final List<TypedValue> parameterValues;
@@ -1246,7 +1246,7 @@ public interface Service {
   }
 
   /** Request for
-   * {@link Meta#fetch(Meta.StatementHandle, List, long, int)}. */
+   * {@link Meta#fetch}. */
   class FetchRequest extends Request {
     public final String connectionId;
     public final int statementId;

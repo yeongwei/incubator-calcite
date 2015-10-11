@@ -222,8 +222,6 @@ public interface Meta {
    * <p>The default implementation always returns null.
    *
    * @param h Statement handle
-   * @param parameterValues A list of parameter values, if statement is to be
-   *                        executed; otherwise null
    * @param offset Zero-based offset of first row in the requested frame
    * @param fetchMaxRowCount Maximum number of rows to return; negative means
    * no limit
