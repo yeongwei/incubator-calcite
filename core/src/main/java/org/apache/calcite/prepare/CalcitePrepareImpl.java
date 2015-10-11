@@ -642,6 +642,19 @@ public class CalcitePrepareImpl implements CalcitePrepare {
     }
   }
 
+  /**
+   * Routine to figure out the StatementType if call does not have sql
+   * defaults to SELECT
+   * @param preparedResult An objecet returned from prepareQueryable or prepareRel
+   * @return Meta.StatementType*/
+  private Meta.StatementType getStatementType(Prepare.PreparedResult preparedResult) {
+    if (preparedResult.isDml()) {
+      return Meta.StatementType.IS_DML;
+    } else {
+      return Meta.StatementType.SELECT;
+    }
+  }
+
   <T> CalciteSignature<T> prepare2_(
       Context context,
       Query<T> query,
@@ -732,10 +745,12 @@ public class CalcitePrepareImpl implements CalcitePrepare {
       x = context.getTypeFactory().createType(elementType);
       preparedResult =
           preparingStmt.prepareQueryable(query.queryable, x);
+      statementType = getStatementType(preparedResult);
     } else {
       assert query.rel != null;
       x = query.rel.getRowType();
       preparedResult = preparingStmt.prepareRel(query.rel);
+      statementType = getStatementType(preparedResult);
     }
 
     final List<AvaticaParameter> parameters = new ArrayList<>();
