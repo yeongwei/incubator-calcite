@@ -1200,12 +1200,14 @@ public interface Meta {
    * Refer to CalcitePrepareImpl#prepare2_
    */
   enum StatementType {
-    SELECT, INSERT, UPDATE, DELETE, UPSERT, MERGE, OTHER_DML,
+    SELECT, INSERT, UPDATE, DELETE, UPSERT, MERGE, OTHER_DML, IS_DML,
     CREATE, DROP, ALTER, OTHER_DDL, CALL;
 
     public boolean canUpdate() {
       switch(this) {
       case INSERT:
+        return true;
+      case IS_DML:
         return true;
       default:
         return false;
