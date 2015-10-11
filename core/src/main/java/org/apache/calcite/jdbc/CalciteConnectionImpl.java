@@ -25,6 +25,7 @@ import org.apache.calcite.avatica.AvaticaStatement;
 import org.apache.calcite.avatica.Helper;
 import org.apache.calcite.avatica.InternalProperty;
 import org.apache.calcite.avatica.Meta;
+import org.apache.calcite.avatica.MetaImpl;
 import org.apache.calcite.avatica.UnregisteredDriver;
 import org.apache.calcite.avatica.remote.TypedValue;
 import org.apache.calcite.config.CalciteConnectionConfig;
@@ -265,6 +266,11 @@ abstract class CalciteConnectionImpl
     AvaticaStatement statement = lookupStatement(handle);
     final List<TypedValue> parameterValues =
         TROJAN.getParameterValues(statement);
+
+    if (MetaImpl.checkParameterValueHasNull(parameterValues)) {
+      throw new SQLException("exception while executing query: unbound parameter");
+    }
+
     for (Ord<TypedValue> o : Ord.zip(parameterValues)) {
       map.put("?" + o.i, o.e.toLocal());
     }

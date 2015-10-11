@@ -22,6 +22,7 @@ import org.apache.calcite.avatica.AvaticaUtils;
 import org.apache.calcite.avatica.ColumnMetaData;
 import org.apache.calcite.avatica.ConnectionPropertiesImpl;
 import org.apache.calcite.avatica.Meta;
+import org.apache.calcite.avatica.MetaImpl;
 import org.apache.calcite.avatica.SqlType;
 import org.apache.calcite.avatica.remote.TypedValue;
 
@@ -777,8 +778,7 @@ public class JdbcMeta implements Meta {
     }
   }
 
-  public Frame fetch(StatementHandle h, List<TypedValue> parameterValues,
-      long offset, int fetchMaxRowCount) {
+  public Frame fetch(StatementHandle h, long offset, int fetchMaxRowCount) {
     if (LOG.isTraceEnabled()) {
       LOG.trace("fetching " + h + " offset:" + offset + " fetchMaxRowCount:"
           + fetchMaxRowCount);
@@ -787,21 +787,6 @@ public class JdbcMeta implements Meta {
       final StatementInfo statementInfo = Objects.requireNonNull(
           statementCache.getIfPresent(h.id),
           "Statement not found, potentially expired. " + h);
-      if (statementInfo.resultSet == null && parameterValues != null) {
-        if (statementInfo.statement instanceof PreparedStatement) {
-          final PreparedStatement preparedStatement =
-              (PreparedStatement) statementInfo.statement;
-          if (parameterValues != null) {
-            for (int i = 0; i < parameterValues.size(); i++) {
-              TypedValue o = parameterValues.get(i);
-              preparedStatement.setObject(i + 1, o.toJdbc(calendar));
-            }
-          }
-          if (preparedStatement.execute()) {
-            statementInfo.resultSet = preparedStatement.getResultSet();
-          }
-        }
-      }
       if (statementInfo.resultSet == null) {
         return Frame.EMPTY;
       } else {
@@ -823,7 +808,10 @@ public class JdbcMeta implements Meta {
   @Override public ExecuteResult execute(StatementHandle h,
       List<TypedValue> parameterValues, long maxRowCount) {
     try {
-      final MetaResultSet metaResultSet;
+      if (MetaImpl.checkParameterValueHasNull(parameterValues)) {
+        throw new SQLException("exception while executing query: unbound parameter");
+      }
+
       final StatementInfo statementInfo = Objects.requireNonNull(
           statementCache.getIfPresent(h.id),
           "Statement not found, potentially expired. " + h);
@@ -862,7 +850,7 @@ public class JdbcMeta implements Meta {
       } else {
         resultSets.add(
             JdbcResultSet.count(h.connectionId, h.id,
-                AvaticaUtils.getLargeUpdateCount(preparedStatement)));
+                preparedStatement.getUpdateCount()));
       }
 
       return new ExecuteResult(resultSets);

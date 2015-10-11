@@ -195,12 +195,10 @@ class RemoteMeta extends MetaImpl {
     }
   }
 
-  @Override public Frame fetch(StatementHandle h,
-      List<TypedValue> parameterValues, long offset, int fetchMaxRowCount) {
+  @Override public Frame fetch(StatementHandle h, long offset, int fetchMaxRowCount) {
     final Service.FetchResponse response =
         service.apply(
-            new Service.FetchRequest(h.connectionId, h.id, parameterValues,
-                offset, fetchMaxRowCount));
+            new Service.FetchRequest(h.connectionId, h.id, offset, fetchMaxRowCount));
     return response.frame;
   }
 

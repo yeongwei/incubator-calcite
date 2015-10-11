@@ -175,7 +175,7 @@ public class ProtobufTranslationImplTest<T> {
     List<TypedValue> paramValues =
         Arrays.asList(TypedValue.create(Rep.BOOLEAN.name(), Boolean.TRUE),
             TypedValue.create(Rep.STRING.name(), "string"));
-    FetchRequest fetchRequest = new FetchRequest("connectionId", Integer.MAX_VALUE, paramValues,
+    FetchRequest fetchRequest = new FetchRequest("connectionId", Integer.MAX_VALUE,
         Long.MAX_VALUE, Integer.MAX_VALUE);
     requests.add(fetchRequest);
 

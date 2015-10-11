@@ -575,16 +575,15 @@ public class CalciteMetaImpl extends MetaImpl {
     // TODO: share code with prepare and createIterable
   }
 
-  @Override public Frame fetch(StatementHandle h, List<TypedValue> parameterValues,
-      long offset, int fetchMaxRowCount) {
+  @Override public Frame fetch(StatementHandle h, long offset, int fetchMaxRowCount) {
     final CalciteConnectionImpl calciteConnection = getConnection();
     CalciteServerStatement stmt = calciteConnection.server.getStatement(h);
     final Signature signature = stmt.getSignature();
     final Iterator<Object> iterator;
     final boolean hasIterator = (stmt.getResultSet() == null) ? false : true;
-    if (parameterValues != null && !hasIterator) {
+    if (!hasIterator) {
       final Iterable<Object> iterable =
-          createIterable(h, signature, parameterValues, null);
+          createIterable(h, signature, null, null);
       iterator = iterable.iterator();
       stmt.setResultSet(iterator);
     } else {

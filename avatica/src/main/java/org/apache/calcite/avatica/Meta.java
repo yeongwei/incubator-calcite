@@ -229,8 +229,7 @@ public interface Meta {
    * no limit
    * @return Frame, or null if there are no more
    */
-  Frame fetch(StatementHandle h, List<TypedValue> parameterValues, long offset,
-      int fetchMaxRowCount);
+  Frame fetch(StatementHandle h, long offset, int fetchMaxRowCount);
 
   /**
    * Executes a PreparedStatement */

@@ -1250,28 +1250,22 @@ public interface Service {
     /** Maximum number of rows to be returned in the frame. Negative means no
      * limit. */
     public final int fetchMaxRowCount;
-    /** A list of parameter values, if statement is to be executed; otherwise
-     * null. */
-    public final List<TypedValue> parameterValues;
 
     FetchRequest() {
       connectionId = null;
       statementId = 0;
       offset = 0;
       fetchMaxRowCount = 0;
-      parameterValues = null;
     }
 
     @JsonCreator
     public FetchRequest(
         @JsonProperty("connectionId") String connectionId,
         @JsonProperty("statementId") int statementId,
-        @JsonProperty("parameterValues") List<TypedValue> parameterValues,
         @JsonProperty("offset") long offset,
         @JsonProperty("fetchMaxRowCount") int fetchMaxRowCount) {
       this.connectionId = connectionId;
       this.statementId = statementId;
-      this.parameterValues = parameterValues;
       this.offset = offset;
       this.fetchMaxRowCount = fetchMaxRowCount;
     }
@@ -1289,36 +1283,17 @@ public interface Service {
       final Requests.FetchRequest msg = (Requests.FetchRequest) genericMsg;
       final Descriptor desc = msg.getDescriptorForType();
 
-      // Cannot determine if a value was set for a repeated field. Must use an extra boolean
-      // parameter to distinguish an empty list and a null list of ParameterValues.
-      List<TypedValue> values = null;
-      if (msg.getHasParameterValues()) {
-        values = new ArrayList<>(msg.getParameterValuesCount());
-        for (Common.TypedValue valueProto : msg.getParameterValuesList()) {
-          values.add(TypedValue.fromProto(valueProto));
-        }
-      }
-
       String connectionId = null;
       if (ProtobufService.hasField(msg, desc, Requests.FetchRequest.CONNECTION_ID_FIELD_NUMBER)) {
         connectionId = msg.getConnectionId();
       }
 
-      return new FetchRequest(connectionId, msg.getStatementId(), values, msg.getOffset(),
+      return new FetchRequest(connectionId, msg.getStatementId(), msg.getOffset(),
           msg.getFetchMaxRowCount());
     }
 
     @Override Requests.FetchRequest serialize() {
       Requests.FetchRequest.Builder builder = Requests.FetchRequest.newBuilder();
-
-      if (null != parameterValues) {
-        builder.setHasParameterValues(true);
-        for (TypedValue paramValue : parameterValues) {
-          builder.addParameterValues(paramValue.toProto());
-        }
-      } else {
-        builder.setHasParameterValues(false);
-      }
 
       if (null != connectionId) {
         builder.setConnectionId(connectionId);
@@ -1337,7 +1312,6 @@ public interface Service {
       result = prime * result + ((connectionId == null) ? 0 : connectionId.hashCode());
       result = prime * result + fetchMaxRowCount;
       result = prime * result + (int) (offset ^ (offset >>> 32));
-      result = prime * result + ((parameterValues == null) ? 0 : parameterValues.hashCode());
       result = prime * result + statementId;
       return result;
     }
@@ -1357,14 +1331,6 @@ public interface Service {
           if (!connectionId.equals(other.connectionId)) {
             return false;
           }
-        }
-
-        if (null == parameterValues) {
-          if (null != other.parameterValues) {
-            return false;
-          }
-        } else if (!parameterValues.equals(other.parameterValues)) {
-          return false;
         }
 
         return offset == other.offset && fetchMaxRowCount == other.fetchMaxRowCount;
