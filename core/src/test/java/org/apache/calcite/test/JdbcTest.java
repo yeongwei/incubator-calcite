@@ -87,6 +87,7 @@ import org.apache.calcite.sql.parser.SqlParserImplFactory;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.sql.parser.SqlParserUtil;
 import org.apache.calcite.sql.parser.impl.SqlParserImpl;
+import org.apache.calcite.test.CalciteAssert.Config;
 import org.apache.calcite.util.Bug;
 import org.apache.calcite.util.JsonBuilder;
 import org.apache.calcite.util.Pair;
@@ -100,7 +101,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import org.hsqldb.jdbcDriver;
-
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -133,10 +133,10 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
+
 import javax.sql.DataSource;
 
 import static org.apache.calcite.util.Static.RESOURCE;
-
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -4966,6 +4966,47 @@ public class JdbcTest {
                 }
               }
             });
+  }
+
+  /** Evaluate PreparedStatmenet and return ResultSet if all asserts are true. */
+  private static ResultSet evaluatePreparedStatement(PreparedStatement preparedStatement) 
+      throws SQLException {
+    final ResultSet resultSet = preparedStatement.executeQuery();
+    assertFalse(resultSet.isClosed());
+    final Boolean status = preparedStatement.execute();
+    assertTrue(status);
+    ResultSet resultSet2 = preparedStatement.getResultSet();
+    assertFalse(resultSet2.isClosed());
+    return resultSet2;
+  }
+
+  @Test public void testSelectPreparedStatementForJdbcAdapter() throws Exception {    
+    final String selectSql = "select * from \"foodmart\".\"department\" where \"department_id\" = ?";
+
+    final Properties properties = new Properties();
+    properties.put("model", "inline: " + FOODMART_MODEL);
+    try {
+      final Connection connection = DriverManager.getConnection("jdbc:calcite:", properties);
+      final PreparedStatement preparedStatement = connection.prepareStatement(selectSql);
+      preparedStatement.setInt(1, 10);
+      evaluatePreparedStatement(preparedStatement);
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+
+    CalciteAssert.that(Config.JDBC_FOODMART)
+      .doWithConnection(new Function<CalciteConnection, Object>() {
+        public Object apply(CalciteConnection calciteConnection) {
+          try {
+            final PreparedStatement preparedStatement = calciteConnection.prepareStatement(selectSql);
+            evaluatePreparedStatement(preparedStatement);
+            preparedStatement.setInt(1, 10);
+            return null;
+          } catch (SQLException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      });
   }
 
   /** Tests a JDBC connection that provides a model (a single schema based on

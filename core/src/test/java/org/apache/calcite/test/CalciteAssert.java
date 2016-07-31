@@ -217,6 +217,11 @@ public class CalciteAssert {
     return that(Config.REGULAR);
   }
 
+  /** Short hand for {@code CalciteAssert.that().with(Config.JDBC_FOODMART)}. */
+  public static AssertThat jdbcFoodmart() {
+    return that(Config.JDBC_FOODMART);
+  }
+
   static Function<RelNode, Void> checkRel(final String expected,
       final AtomicInteger counter) {
     return new Function<RelNode, Void>() {

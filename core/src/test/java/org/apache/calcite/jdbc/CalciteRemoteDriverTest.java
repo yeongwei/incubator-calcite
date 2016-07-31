@@ -37,7 +37,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import org.hamcrest.CoreMatchers;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -77,7 +76,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test for Calcite's remote JDBC driver.
@@ -751,17 +752,36 @@ public class CalciteRemoteDriverTest {
     }
   }
 
-  /** Factory that creates a {@code LocalJsonService}. */
-  public static class Factory2 implements Service.Factory {
+  /** Abstract Factory that helps to create a {@code LocalJsonService} with user defined dataset. */
+  private abstract static class AbstractFactory implements Service.Factory {
+    final private CalciteAssert.AssertThat ASSERT_THAT;
+    public AbstractFactory(CalciteAssert.AssertThat assertThat) {
+      ASSERT_THAT = assertThat;
+    }
+
     public Service create(AvaticaConnection connection) {
       try {
-        Connection localConnection = CalciteAssert.hr().connect();
+        Connection localConnection = ASSERT_THAT.connect();
         final Meta meta = CalciteConnectionImpl.TROJAN
             .getMeta((CalciteConnectionImpl) localConnection);
         return new LocalJsonService(new LocalService(meta));
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
+    }
+  }
+
+  /** Factory that creates a {@code LocalJsonService} with REGULAR dataset(e.g. hr). */
+  public static class Factory2 extends AbstractFactory {
+    public Factory2() {
+      super(CalciteAssert.hr());
+    }
+  }
+
+  /** Factory that creates a {@code LocalJsonService} with JDBC_FOODMART dataset. */
+  public static class Factory3 extends AbstractFactory {
+    public Factory3() {
+      super(CalciteAssert.jdbcFoodmart());
     }
   }
 
@@ -854,6 +874,25 @@ public class CalciteRemoteDriverTest {
    * Remote PreparedStatement insert WITH bind variables
    */
   @Test public void testRemotePreparedStatementInsert2() throws Exception {
+  }
+
+  @Test public void testRemotePreparedStatementSelectJdbcAdapter() throws Exception {
+    final Connection connection = DriverManager.getConnection(
+        "jdbc:avatica:remote:factory=" + Factory3.class.getName());
+    assertFalse(connection.isClosed());
+    
+    String sql = "select * from \"foodmart\".\"department\" where \"department_id\" = ?";
+    final PreparedStatement preparedStatement = connection.prepareStatement(sql);
+    assertFalse(preparedStatement.isClosed());
+
+    preparedStatement.setInt(1, 10);
+    ResultSet resultSet = preparedStatement.executeQuery();
+    assertFalse(resultSet.isClosed());
+    
+    Boolean status = preparedStatement.execute();
+    assertTrue(status);
+    ResultSet resultSet2 = preparedStatement.getResultSet();
+    assertFalse(resultSet2.isClosed());
   }
 }
 

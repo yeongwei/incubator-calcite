@@ -30,6 +30,7 @@ import org.apache.calcite.tools.Planner;
 import org.apache.calcite.tools.Program;
 import org.apache.calcite.util.Util;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -42,7 +43,8 @@ import static org.junit.Assert.assertTrue;
  * Tests for utility {@link RelToSqlConverter}
  */
 public class RelToSqlConverterTest {
-  private Planner logicalPlanner = getPlanner(null);
+  private Planner logicalPlanner = getPlanner(CalciteAssert.SchemaSpec.JDBC_FOODMART, null);
+  private Planner logicalPlanner2 = getPlanner(CalciteAssert.SchemaSpec.HR, null);
 
   private void checkRel2Sql(Planner planner, String query, String expectedQuery,
       SqlDialect dialect) {
@@ -64,17 +66,18 @@ public class RelToSqlConverterTest {
     checkRel2Sql(planner, query, expectedQuery, SqlDialect.CALCITE);
   }
 
-  private Planner getPlanner(List<RelTraitDef> traitDefs, Program... programs) {
-    return getPlanner(traitDefs, SqlParser.Config.DEFAULT, programs);
+  private Planner getPlanner(CalciteAssert.SchemaSpec schemaSpec, List<RelTraitDef> traitDefs,
+      Program... programs) {
+    return getPlanner(schemaSpec, traitDefs, SqlParser.Config.DEFAULT, programs);
   }
 
-  private Planner getPlanner(List<RelTraitDef> traitDefs,
+  private Planner getPlanner(CalciteAssert.SchemaSpec schemaSpec, List<RelTraitDef> traitDefs,
       SqlParser.Config parserConfig, Program... programs) {
     final SchemaPlus rootSchema = Frameworks.createRootSchema(true);
     final FrameworkConfig config = Frameworks.newConfigBuilder()
         .parserConfig(parserConfig)
         .defaultSchema(
-            CalciteAssert.addSchema(rootSchema, CalciteAssert.SchemaSpec.JDBC_FOODMART))
+            CalciteAssert.addSchema(rootSchema, schemaSpec))
         .traitDefs(traitDefs)
         .programs(programs)
         .build();
@@ -510,6 +513,38 @@ public class RelToSqlConverterTest {
         DatabaseProduct.DB2.getDialect());
   }
 
+  private SqlNode queryParser(Planner planner, String sql) throws Exception {
+    SqlNode parse = planner.parse(sql);
+    SqlNode validate = planner.validate(parse);
+    RelNode rel = planner.rel(validate).rel;
+    final RelToSqlConverter converter = new RelToSqlConverter(SqlDialect.CALCITE);
+    final SqlNode sqlNode = converter.visitChild(0, rel).asQuery();
+    return sqlNode;
+  }
+
+  // FIXME: Just for investigation, need hardening
+  @Ignore public void testParsePrepareStatementWithJdbcAdapter() {
+    String query = "select * from \"foodmart\".\"department\" where \"department_id\" = ?";
+    try {
+      queryParser(logicalPlanner, query);
+      assertTrue(true);
+    } catch (Exception e) {
+      e.printStackTrace();
+      assertTrue(false);
+    }
+  }
+
+  // FIXMS: Just for investigation, need hardening
+  @Test public void testParsePrepareStatementWithoutJdbcAdapter() {
+    String query = "select \"deptno\", \"name\" from \"hr\".\"emps\" where \"deptno\" = ?";
+    try {
+      queryParser(logicalPlanner2, query);
+      assertTrue(true);
+    } catch (Exception e) {
+      e.printStackTrace();
+      assertTrue(false);
+    }
+  }
 }
 
 // End RelToSqlConverterTest.java
